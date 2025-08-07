@@ -1,0 +1,883 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.retry-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.retry-header {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    padding: 15px 20px;
+    text-align: center;
+    position: relative;
+    border-radius: 20px 20px 0 0;
+    margin-bottom: 0;
+}
+
+.nav-buttons {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.nav-btn {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.retry-header h1 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    font-weight: 300;
+}
+
+.retry-header p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    background: white;
+    border-radius: 0 0 20px 20px;
+    overflow: hidden;
+    min-height: calc(100vh - 140px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* 채팅 섹션 */
+.chat-section {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #e9ecef;
+    background: #f8f9fa;
+    height: 100%;
+    min-height: 0;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: white;
+    min-height: 0;
+    max-height: calc(100vh - 300px);
+}
+
+.message {
+    display: flex;
+    flex-direction: column;
+    max-width: 70%;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.user-message {
+    align-self: flex-end;
+}
+
+.bot-message {
+    align-self: flex-start;
+}
+
+.message-content {
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 1rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.user-message .message-content {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+}
+
+.bot-message .message-content {
+    background: white;
+    color: #333;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.message-time {
+    font-size: 0.8rem;
+    color: #999;
+    margin-top: 4px;
+    align-self: flex-end;
+}
+
+.loading-dots {
+    display: inline-block;
+    animation: pulse 1.5s infinite;
+}
+
+/* 입력 섹션 */
+.input-section {
+    background: white;
+    border-top: 1px solid #e9ecef;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex-shrink: 0;
+    margin-top: auto;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+.input-area {
+    margin-bottom: 10px;
+}
+
+.text-input-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.text-input-container input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 25px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.text-input-container input:focus {
+    border-color: #4CAF50;
+}
+
+.text-input-container input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.send-btn {
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.send-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.send-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.voice-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.voice-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.voice-btn.recording {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    animation: pulse 1.5s infinite;
+}
+
+.voice-btn.recording:hover {
+    background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
+}
+
+.voice-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.mic-icon {
+    font-size: 1.2rem;
+}
+
+.mic-text {
+    font-size: 0.8rem;
+}
+
+.stop-voice-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.stop-voice-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.stop-voice-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.stop-icon {
+    font-size: 1.2rem;
+}
+
+.voice-status {
+    font-size: 0.9rem;
+    color: #666;
+    text-align: center;
+    padding: 5px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-top: 5px;
+    min-height: 20px;
+}
+
+/* 버튼 영역 */
+.button-area {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.clear-btn, .logs-btn, .cheatsheet-btn {
+    padding: 8px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 20px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.clear-btn {
+    background: #fff3cd;
+    border-color: #ffeaa7;
+    color: #856404;
+}
+
+.clear-btn:hover {
+    background: #ffeaa7;
+    transform: translateY(-1px);
+}
+
+.logs-btn {
+    background: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+}
+
+.logs-btn:hover {
+    background: #bee5eb;
+    transform: translateY(-1px);
+}
+
+.cheatsheet-btn {
+    background: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.cheatsheet-btn:hover {
+    background: #c3e6cb;
+    transform: translateY(-1px);
+}
+
+/* 퀘스트 섹션 */
+.quest-section {
+    background: white;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    max-height: calc(100vh - 140px);
+}
+
+.quest-header {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.quest-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.quest-header h2 {
+    color: #333;
+    font-size: 1.5rem;
+    margin-bottom: 0;
+    font-weight: 600;
+}
+
+.quest-check-btn {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s ease;
+}
+
+.quest-check-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.quest-check-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.quest-header p {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.quest-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.quest-item {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 15px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.quest-item:hover {
+    border-color: #4CAF50;
+    background: #f1f8e9;
+}
+
+.quest-item.completed {
+    background: #d4edda;
+    border-color: #28a745;
+    animation: questCompleted 0.5s ease-in-out;
+}
+
+.quest-item.completed .quest-title {
+    color: #155724;
+}
+
+@keyframes questCompleted {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 0 0 10px rgba(40, 167, 69, 0.4);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+    }
+}
+
+.quest-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.quest-checkbox {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.quest-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #4CAF50;
+    border-radius: 4px;
+    appearance: none;
+    cursor: pointer;
+    position: relative;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.quest-checkbox input[type="checkbox"]:checked {
+    background: #4CAF50;
+    border-color: #4CAF50;
+}
+
+.quest-checkbox input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.grade-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.grade-badge.하 {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.grade-badge.중 {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.quest-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.quest-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+    font-size: 0.95rem;
+}
+
+.quest-description {
+    color: #666;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.quest-progress {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+    flex-shrink: 0;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* 로그 모달 */
+.logs-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+.logs-modal-content {
+    background: white;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.3s ease;
+}
+
+.logs-modal-header {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.header-content h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.header-info {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.date-info, .participant-info {
+    margin-bottom: 2px;
+}
+
+.close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.logs-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f8f9fa;
+}
+
+.logs-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.log-entry {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.log-entry:hover {
+    border-color: #4CAF50;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.log-number {
+    font-weight: 600;
+    color: #4CAF50;
+    font-size: 0.9rem;
+}
+
+.log-timestamp {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.log-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.log-user, .log-doctor {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.log-user {
+    align-self: flex-end;
+    max-width: 80%;
+}
+
+.log-doctor {
+    align-self: flex-start;
+    max-width: 80%;
+}
+
+.message-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #666;
+    text-align: center;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    width: fit-content;
+}
+
+.log-user .message-label {
+    align-self: flex-end;
+}
+
+.log-doctor .message-label {
+    align-self: flex-start;
+}
+
+.message-content {
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.log-user .message-content {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+}
+
+.log-doctor .message-content {
+    background: #f1f3f4;
+    color: #333;
+}
+
+.empty-logs {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.empty-logs h4 {
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.empty-logs p {
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* 퀘스트 완료 토스트 */
+.quest-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    z-index: 1001;
+    animation: slideInRight 0.3s ease-out;
+    max-width: 300px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+    }
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .quest-section {
+        order: -1;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .retry-container {
+        padding: 10px;
+    }
+    
+    .retry-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .button-area {
+        flex-direction: column;
+    }
+    
+    .clear-btn, .logs-btn, .cheatsheet-btn {
+        justify-content: center;
+    }
+    
+    .chat-messages {
+        padding: 15px;
+    }
+    
+    .quest-section {
+        padding: 15px;
+    }
+    
+    .logs-modal-content {
+        width: 95%;
+        margin: 10px;
+    }
+    
+    .logs-modal-header {
+        padding: 15px;
+    }
+    
+    .logs-modal-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .logs-modal-body {
+        padding: 15px;
+    }
+    
+    .message {
+        max-width: 85%;
+    }
+    
+    .text-input-container {
+        flex-wrap: wrap;
+    }
+    
+    .text-input-container input {
+        min-width: 200px;
+    }
+}

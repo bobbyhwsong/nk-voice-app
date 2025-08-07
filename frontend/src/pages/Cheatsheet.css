@@ -1,0 +1,1158 @@
+/* Cheatsheet 페이지 스타일 */
+
+.cheatsheet-page {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #333;
+    font-size: 16px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* min-height 제거 - 완전한 자연 스크롤 */
+}
+
+.cheatsheet-header {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 0;
+}
+
+.nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 25px;
+}
+
+.nav-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 30px;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.nav-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.cheatsheet-header h1 {
+    font-size: 3em;
+    margin-bottom: 15px;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+    letter-spacing: -1px;
+}
+
+.cheatsheet-header p {
+    font-size: 1.2em;
+    color: #666;
+    font-weight: 500;
+}
+
+.content {
+    padding: 20px;
+    background: transparent;
+    margin: 0;
+    max-width: none;
+}
+
+.cheatsheet-container {
+    width: 100%;
+    margin: auto;
+    background: transparent;
+    padding: 10px 10px; /* 위아래 패딩 대폭 증가 */
+    box-sizing: border-box;
+}
+
+/* 심리적 섹션 스타일 */
+.psychological-section {
+    margin-bottom: 40px;
+    padding: 30px;
+    background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
+    border-radius: 20px;
+    border-left: 6px solid #2196f3;
+    box-shadow: 0 8px 25px rgba(33, 150, 243, 0.1);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.section-header h3 {
+    font-size: 1.6em;
+    color: #1976d2;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+}
+
+.toggle-btn {
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid #2196f3;
+    color: #2196f3;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+.toggle-btn:hover {
+    background: #2196f3;
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.psychological-toggle {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.show-psychological-btn {
+    background: linear-gradient(45deg, #e3f2fd, #bbdefb);
+    border: 2px solid #2196f3;
+    color: #1976d2;
+    padding: 12px 24px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
+}
+
+.show-psychological-btn:hover {
+    background: linear-gradient(45deg, #2196f3, #1976d2);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.3);
+}
+
+.encouragement-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e3f2fd;
+    transition: transform 0.3s ease;
+}
+
+.encouragement-card:hover {
+    transform: translateY(-2px);
+}
+
+.encouragement-icon {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.encouragement-card h4 {
+    color: #1976d2;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
+.encouragement-card p {
+    line-height: 1.8;
+    color: #555;
+    font-size: 1.05em;
+}
+
+.research-info {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e8f5e8;
+}
+
+.research-info h4 {
+    color: #1976d2;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
+.research-info p {
+    margin-bottom: 20px;
+    color: #555;
+    line-height: 1.7;
+    font-size: 1.05em;
+}
+
+.research-info ul {
+    list-style: none;
+    padding: 0;
+}
+
+.research-info li {
+    margin-bottom: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.3s ease;
+}
+
+.research-info li:hover {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding-left: 10px;
+}
+
+.research-info a {
+    color: #2196f3;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.research-info a:hover {
+    color: #1976d2;
+    text-decoration: underline;
+}
+
+.voice-analysis {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e8f5e8;
+}
+
+.voice-analysis h4 {
+    color: #1976d2;
+    margin-bottom: 20px;
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
+.analysis-summary {
+    background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border-left: 5px solid #4caf50;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.1);
+}
+
+.analysis-details {
+    margin-bottom: 20px;
+    line-height: 1.8;
+    color: #555;
+    font-size: 1.05em;
+}
+
+.analysis-aspects, .analysis-suggestions {
+    margin-bottom: 20px;
+}
+
+.analysis-aspects h5, .analysis-suggestions h5 {
+    color: #1976d2;
+    margin-bottom: 12px;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+.analysis-aspects ul, .analysis-suggestions ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.analysis-aspects li, .analysis-suggestions li {
+    padding: 8px 0;
+    color: #555;
+    line-height: 1.6;
+    position: relative;
+    padding-left: 20px;
+}
+
+.analysis-aspects li:before, .analysis-suggestions li:before {
+    content: "•";
+    color: #4caf50;
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+}
+
+/* 스크립트 섹션 스타일 */
+.script-section {
+    margin-bottom: 40px;
+    padding: 30px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 20px;
+    border-left: 6px solid #667eea;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.1);
+}
+
+.script-section h3 {
+    font-size: 1.6em;
+    color: #333;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+}
+
+.script-intro, .listening-intro {
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border-left: 5px solid #2196f3;
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.1);
+}
+
+.script-intro h4, .listening-intro h4 {
+    color: #1976d2;
+    margin: 0;
+    font-size: 1.2em;
+    font-weight: 600;
+}
+
+.script-content, .listening-content {
+    line-height: 1.8;
+    font-size: 1.05em;
+}
+
+.script-item, .listening-item {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    border-left: 5px solid #667eea;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.script-item:hover, .listening-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+}
+
+.script-item:before, .listening-item:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+}
+
+.script-item h4, .listening-item h4 {
+    color: #333;
+    margin-bottom: 18px;
+    font-size: 1.3em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.script-item h4:before, .listening-item h4:before {
+    content: "💬";
+    font-size: 1.2em;
+}
+
+.listening-item h4:before {
+    content: "👂";
+}
+
+.script-content, .listening-content {
+    line-height: 1.8;
+    color: #555;
+}
+
+.actual-script, .doctor-script {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 18px;
+    border-radius: 10px;
+    margin: 15px 0;
+    font-weight: 500;
+    color: #333;
+    border-left: 4px solid #4caf50;
+    font-size: 1.05em;
+    line-height: 1.7;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    position: relative;
+}
+
+.actual-script:before, .doctor-script:before {
+    content: "💭";
+    position: absolute;
+    left: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2em;
+}
+
+
+
+.highlight {
+    background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #333;
+}
+
+.important {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    padding: 20px;
+    border-radius: 12px;
+    margin: 20px 0;
+    border-left: 5px solid #ff6b35;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.1);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 40px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 18px 35px;
+    border: none;
+    border-radius: 30px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.action-btn:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.action-btn:hover:before {
+    left: 100%;
+}
+
+.copy-btn {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+}
+
+.download-img-btn {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+    color: white;
+}
+
+.finish-btn {
+    background: linear-gradient(45deg, #4caf50, #45a049);
+    color: white;
+}
+
+.action-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.notification {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    background: white;
+    padding: 20px 25px;
+    border-radius: 15px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    transform: translateX(400px);
+    transition: transform 0.4s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.success {
+    border-left: 5px solid #4caf50;
+    background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
+}
+
+.notification.error {
+    border-left: 5px solid #f44336;
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+}
+
+/* 로딩 상태 */
+.loading-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: #666;
+}
+
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 30px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 오류 상태 */
+.error-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: #666;
+}
+
+.error-icon {
+    font-size: 4em;
+    margin-bottom: 25px;
+}
+
+.error-state h3 {
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 1.5em;
+}
+
+.error-state p {
+    margin-bottom: 35px;
+    color: #666;
+    font-size: 1.1em;
+}
+
+.retry-btn {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 30px;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+}
+
+.retry-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+/* 팝업 스타일 */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    backdrop-filter: blur(5px);
+}
+
+.popup-content {
+    background: white;
+    border-radius: 20px;
+    max-width: 700px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: popupSlideIn 0.3s ease-out;
+}
+
+@keyframes popupSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px;
+    border-bottom: 1px solid #eee;
+    background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
+    border-radius: 20px 20px 0 0;
+}
+
+.popup-header h2 {
+    margin: 0;
+    color: #1976d2;
+    font-size: 1.5em;
+    font-weight: 700;
+}
+
+.popup-close-btn {
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid #2196f3;
+    color: #2196f3;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+.popup-close-btn:hover {
+    background: #2196f3;
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.popup-body {
+    padding: 30px;
+}
+
+.popup-info {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+    text-align: center;
+    border-left: 5px solid #ff9800;
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.1);
+}
+
+.popup-info p {
+    margin: 0;
+    color: #f57c00;
+    font-weight: 600;
+    font-size: 1.05em;
+}
+
+/* 팝업 내부 카드들 스타일 조정 */
+.popup-body .encouragement-card,
+.popup-body .research-info,
+.popup-body .voice-analysis {
+    margin-bottom: 25px;
+}
+
+.popup-body .encouragement-card:hover,
+.popup-body .research-info:hover,
+.popup-body .voice-analysis:hover {
+    transform: none; /* 팝업 내에서는 호버 효과 제거 */
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .cheatsheet-page {
+        padding: 15px 0;
+    }
+    
+    .content {
+        padding: 25px;
+        margin: 0 15px;
+    }
+    
+    .cheatsheet-container {
+        padding: 25px;
+    }
+    
+    .cheatsheet-header {
+        padding: 25px;
+        margin: 0 15px 30px;
+    }
+    
+    .cheatsheet-header h1 {
+        font-size: 2.5em;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .action-btn {
+        width: 100%;
+        max-width: 350px;
+        font-size: 1em;
+        padding: 15px 25px;
+    }
+    
+    .script-section, .psychological-section {
+        padding: 25px;
+    }
+    
+    .script-item, .listening-item, .precautions-item {
+        padding: 20px;
+    }
+    
+    /* 모바일 팝업 스타일 */
+    .popup-overlay {
+        padding: 15px;
+    }
+    
+    .popup-content {
+        max-height: 90vh;
+    }
+    
+    .popup-header {
+        padding: 20px 25px;
+    }
+    
+    .popup-header h2 {
+        font-size: 1.3em;
+    }
+    
+    .popup-body {
+        padding: 25px;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-buttons {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .cheatsheet-header h1 {
+        font-size: 2.2em;
+    }
+    
+    .content {
+        padding: 20px;
+        margin: 0 10px;
+    }
+    
+    .cheatsheet-container {
+        padding: 20px;
+    }
+    
+    .script-section, .psychological-section {
+        padding: 20px;
+    }
+    
+    .script-item, .listening-item, .precautions-item {
+        padding: 18px;
+    }
+    
+    .actual-script, .doctor-script {
+        padding: 15px;
+        font-size: 1em;
+    }
+    
+    /* 초소형 화면 팝업 스타일 */
+    .popup-overlay {
+        padding: 10px;
+    }
+    
+    .popup-header {
+        padding: 18px 20px;
+    }
+    
+    .popup-header h2 {
+        font-size: 1.2em;
+    }
+    
+    .popup-body {
+        padding: 20px;
+    }
+    
+    .popup-close-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+    }
+}
+
+/* 치트시트가 없을 때 표시할 스타일 */
+.no-cheatsheet-state {
+    text-align: center;
+    padding: 60px 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    max-width: 600px;
+    margin: 40px auto 60px auto; /* parallel-sections와 동일한 마진 */
+}
+
+.no-cheatsheet-icon {
+    font-size: 4em;
+    margin-bottom: 20px;
+    opacity: 0.7;
+}
+
+.no-cheatsheet-state h3 {
+    font-size: 1.8em;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.no-cheatsheet-state p {
+    font-size: 1.1em;
+    color: #666;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.no-cheatsheet-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.generate-cheatsheet-btn, .view-history-btn {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 30px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.generate-cheatsheet-btn {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+}
+
+.generate-cheatsheet-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.view-history-btn {
+    background: linear-gradient(45deg, #f093fb, #f5576c);
+    color: white;
+}
+
+.view-history-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(245, 87, 108, 0.4);
+}
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+    .no-cheatsheet-state {
+        padding: 40px 20px;
+        margin: 15px;
+    }
+    
+    .no-cheatsheet-icon {
+        font-size: 3em;
+    }
+    
+    .no-cheatsheet-state h3 {
+        font-size: 1.5em;
+    }
+    
+    .no-cheatsheet-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .generate-cheatsheet-btn, .view-history-btn {
+        width: 100%;
+        max-width: 280px;
+    }
+}
+
+/* 팝업 액션 버튼 스타일 */
+.popup-action {
+    margin-top: 30px;
+    text-align: center;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding-top: 25px;
+}
+
+.popup-action-btn {
+    padding: 15px 35px;
+    border: none;
+    border-radius: 30px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.popup-action-btn.generate-btn {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+}
+
+.popup-action-btn.generate-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.popup-action-btn.loading-btn {
+    background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+    color: white;
+    cursor: not-allowed;
+}
+
+.popup-action-btn.view-btn {
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+    color: white;
+}
+
+.popup-action-btn.view-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(46, 204, 113, 0.4);
+}
+
+/* 버튼 로딩 스피너 */
+.btn-loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid #ffffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 반응형 - 팝업 액션 버튼 */
+@media (max-width: 768px) {
+    .popup-action-btn {
+        padding: 12px 25px;
+        font-size: 1em;
+        min-width: 180px;
+    }
+}
+
+/* 단순화된 div 구조용 스타일 */
+.script-div, .listening-div {
+    /* left-section, right-section 클래스에서 스타일 상속 */
+}
+
+.script-item, .listening-item {
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.script-item:hover, .listening-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.script-item h4, .listening-item h4 {
+    color: #2c3e50;
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.script-item p, .listening-item p {
+    color: #34495e;
+    line-height: 1.6;
+    margin: 0;
+    font-size: 1em;
+}
+
+/* 병렬 섹션 레이아웃 - 정확히 50:50 분할 */
+.parallel-sections {
+    display: flex;
+    margin: 40px auto 60px auto; /* 위아래 마진 대폭 증가 */
+    width: calc(100% - 40px); /* 양쪽 패딩 고려 */
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    align-items: flex-start;
+}
+
+.left-section, .right-section {
+    flex: 1; /* 정확히 50% 차지 */
+    min-width: 0;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+.left-section {
+    border-right: 3px solid rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+}
+
+.right-section {
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.05), rgba(39, 174, 96, 0.05));
+}
+
+/* 액션 버튼들을 한 줄로 정렬 */
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin: 30px 20px 20px;
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.action-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 25px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    min-width: 140px;
+    white-space: nowrap;
+}
+
+.copy-btn {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+}
+
+.copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.download-img-btn {
+    background: linear-gradient(45deg, #f093fb, #f5576c);
+    color: white;
+}
+
+.download-img-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+}
+
+
+
+.finish-btn {
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+    color: white;
+}
+
+.finish-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+}
+
+/* 반응형 - 병렬 레이아웃 */
+@media (max-width: 1024px) {
+    .left-section, .right-section {
+        padding: 20px;
+        min-height: 350px;
+    }
+}
+
+@media (max-width: 768px) {
+    .parallel-sections {
+        flex-direction: column;
+        width: calc(100% - 20px);
+        margin: 0 auto 20px auto;
+    }
+    
+    .left-section, .right-section {
+        width: 100%;
+        padding: 15px;
+    }
+    
+    .left-section {
+        border-right: none;
+        border-bottom: 3px solid rgba(102, 126, 234, 0.3);
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+    
+    .right-section {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin: 20px 10px;
+        padding: 20px;
+    }
+    
+    .action-btn {
+        width: 100%;
+        max-width: 280px;
+    }
+}

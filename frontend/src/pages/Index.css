@@ -1,0 +1,570 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  max-width: none;
+  width: 98%;
+  margin: 0 auto;
+  overflow: hidden;
+  min-height: 50vh;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+header h1 {
+  font-size: 2.2rem;
+  margin-bottom: 6px;
+  font-weight: 300;
+}
+
+header p {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.login-form {
+  background: #f8f9fa;
+  border-radius: 15px;
+  padding: 30px;
+  border: 2px solid #e9ecef;
+  width: 100%;
+  max-width: 500px;
+}
+
+.login-form h3 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  color: #333;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 120px;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+}
+
+.nav-buttons {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.nav-btn {
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.error-message {
+  color: #d32f2f;
+  background: #ffebee;
+  padding: 8px;
+  border-radius: 5px;
+  margin-bottom: 12px;
+  border: 1px solid #ffcdd2;
+  font-size: 0.9rem;
+}
+
+.bottom-buttons {
+  display: flex;
+  gap: 15px;
+  padding: 20px;
+  justify-content: center;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  flex-shrink: 0;
+}
+
+.cheatsheet-btn {
+  padding: 12px 20px;
+  border: 2px solid #4CAF50;
+  border-radius: 10px;
+  background: white;
+  color: #4CAF50;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 180px;
+}
+
+.cheatsheet-btn:hover {
+  background: #4CAF50;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* 매우 넓은 화면 (1600px 이상) */
+@media (min-width: 1600px) {
+  .container {
+    width: 99%;
+    min-height: 45vh;
+    max-height: 70vh;
+  }
+  
+  .content {
+    padding: 40px;
+  }
+  
+  .login-form {
+    padding: 35px;
+    max-width: 600px;
+  }
+  
+  .login-form h3 {
+    font-size: 1.8rem;
+  }
+  
+  .form-group label {
+    font-size: 1.1rem;
+  }
+  
+  .form-group input, .form-group textarea {
+    font-size: 1rem;
+    padding: 12px;
+  }
+  
+  .form-group textarea {
+    min-height: 140px;
+  }
+  
+  .submit-btn {
+    font-size: 1.1rem;
+    padding: 14px;
+  }
+  
+  .bottom-buttons {
+    padding: 25px;
+  }
+  
+  .cheatsheet-btn {
+    font-size: 1rem;
+    padding: 14px 24px;
+    min-width: 200px;
+  }
+}
+
+/* 넓은 화면 (1400px - 1599px) */
+@media (min-width: 1400px) and (max-width: 1599px) {
+  .container {
+    width: 99%;
+    min-height: 48vh;
+    max-height: 72vh;
+  }
+  
+  .content {
+    padding: 35px;
+  }
+  
+  .login-form {
+    padding: 30px;
+    max-width: 550px;
+  }
+  
+  .login-form h3 {
+    font-size: 1.6rem;
+  }
+  
+  .form-group label {
+    font-size: 1rem;
+  }
+  
+  .form-group input, .form-group textarea {
+    font-size: 0.95rem;
+    padding: 11px;
+  }
+  
+  .form-group textarea {
+    min-height: 130px;
+  }
+  
+  .submit-btn {
+    font-size: 1rem;
+    padding: 13px;
+  }
+  
+  .bottom-buttons {
+    padding: 22px;
+  }
+  
+  .cheatsheet-btn {
+    font-size: 0.95rem;
+    padding: 13px 22px;
+    min-width: 190px;
+  }
+}
+
+/* 중간 화면 (1024px - 1399px) */
+@media (min-width: 1024px) and (max-width: 1399px) {
+  .container {
+    width: 98%;
+    min-height: 50vh;
+    max-height: 75vh;
+  }
+  
+  .content {
+    padding: 30px;
+  }
+  
+  .login-form {
+    padding: 25px;
+    max-width: 500px;
+  }
+  
+  .login-form h3 {
+    font-size: 1.5rem;
+  }
+  
+  .form-group label {
+    font-size: 0.95rem;
+  }
+  
+  .form-group input, .form-group textarea {
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+  
+  .form-group textarea {
+    min-height: 120px;
+  }
+  
+  .submit-btn {
+    font-size: 0.95rem;
+    padding: 12px;
+  }
+  
+  .bottom-buttons {
+    padding: 20px;
+  }
+  
+  .cheatsheet-btn {
+    font-size: 0.9rem;
+    padding: 12px 20px;
+    min-width: 180px;
+  }
+}
+
+/* 작은 데스크톱/태블릿 (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container {
+    width: 99%;
+    min-height: 55vh;
+    max-height: 80vh;
+  }
+  
+  .content {
+    padding: 25px;
+  }
+  
+  .login-form {
+    padding: 22px;
+    max-width: 450px;
+  }
+  
+  .login-form h3 {
+    font-size: 1.4rem;
+  }
+  
+  .form-group label {
+    font-size: 0.9rem;
+  }
+  
+  .form-group input, .form-group textarea {
+    font-size: 0.85rem;
+    padding: 9px;
+  }
+  
+  .form-group textarea {
+    min-height: 110px;
+  }
+  
+  .submit-btn {
+    font-size: 0.9rem;
+    padding: 11px;
+  }
+  
+  .bottom-buttons {
+    padding: 18px;
+  }
+  
+  .cheatsheet-btn {
+    font-size: 0.85rem;
+    padding: 11px 18px;
+    min-width: 160px;
+  }
+}
+
+/* 태블릿 (768px 이하) */
+@media (max-width: 768px) {
+  .container {
+    width: 99%;
+    min-height: 60vh;
+    max-height: 85vh;
+  }
+  
+  .content {
+    padding: 20px;
+  }
+  
+  .login-form {
+    padding: 20px;
+    max-width: 100%;
+  }
+  
+  .login-form h3 {
+    font-size: 1.3rem;
+  }
+  
+  .form-group label {
+    font-size: 0.85rem;
+  }
+  
+  .form-group input, .form-group textarea {
+    font-size: 0.8rem;
+    padding: 8px;
+  }
+  
+  .form-group textarea {
+    min-height: 100px;
+  }
+  
+  .submit-btn {
+    font-size: 0.85rem;
+    padding: 10px;
+  }
+  
+  .bottom-buttons {
+    padding: 15px;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .cheatsheet-btn {
+    font-size: 0.8rem;
+    padding: 10px 16px;
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .nav-buttons {
+    top: 10px;
+    right: 10px;
+  }
+  
+  .nav-btn {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+  }
+}
+
+/* 모바일 (480px 이하) */
+@media (max-width: 480px) {
+  .container {
+    width: 100%;
+    min-height: 65vh;
+    max-height: 90vh;
+    border-radius: 0;
+    margin: 0;
+  }
+  
+  header {
+    padding: 15px 12px;
+  }
+  
+  header h1 {
+    font-size: 1.6rem;
+  }
+  
+  header p {
+    font-size: 0.9rem;
+  }
+  
+  .content {
+    padding: 15px 12px;
+  }
+  
+  .login-form {
+    padding: 15px 12px;
+  }
+  
+  .login-form h3 {
+    font-size: 1.2rem;
+  }
+  
+  .form-group label {
+    font-size: 0.8rem;
+  }
+  
+  .form-group input, .form-group textarea {
+    font-size: 0.75rem;
+    padding: 7px;
+  }
+  
+  .form-group textarea {
+    min-height: 90px;
+  }
+  
+  .submit-btn {
+    font-size: 0.8rem;
+    padding: 9px;
+  }
+  
+  .bottom-buttons {
+    padding: 12px;
+  }
+  
+  .cheatsheet-btn {
+    font-size: 0.75rem;
+    padding: 9px 14px;
+  }
+  
+  .nav-buttons {
+    top: 8px;
+    right: 8px;
+  }
+  
+  .nav-btn {
+    padding: 3px 6px;
+    font-size: 0.65rem;
+  }
+}
+
+/* 매우 작은 모바일 (320px 이하) */
+@media (max-width: 320px) {
+  .container {
+    min-height: 70vh;
+    max-height: 95vh;
+  }
+  
+  header h1 {
+    font-size: 1.4rem;
+  }
+  
+  .content {
+    padding: 12px 8px;
+  }
+  
+  .login-form {
+    padding: 12px 8px;
+  }
+  
+  .form-group textarea {
+    min-height: 80px;
+  }
+  
+  .bottom-buttons {
+    padding: 10px;
+  }
+  
+  .cheatsheet-btn {
+    font-size: 0.7rem;
+    padding: 8px 12px;
+  }
+}
