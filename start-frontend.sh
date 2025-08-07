@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 NK Voice App Frontend 시작 중..."
+echo "🚀 의료 대화 연습 시스템 Frontend 시작 중..."
 
 # Frontend 디렉토리로 이동
 cd frontend

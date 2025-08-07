@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 NK Voice App Backend 시작 중..."
+echo "🚀 의료 대화 연습 시스템 Backend 시작 중..."
 
 # Backend 디렉토리로 이동
 cd backend

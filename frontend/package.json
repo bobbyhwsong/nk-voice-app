@@ -1,7 +1,7 @@
 {
-  "name": "nk-voice-frontend",
+  "name": "medical-voice-practice",
   "version": "1.0.0",
-  "description": "Frontend for NK Voice App",
+  "description": "의료 종사자를 위한 환자 진료 상황 음성 대화 연습 시스템",
   "scripts": {
     "dev": "vite",
     "dev:ngrok": "VITE_USE_NGROK=true vite",
