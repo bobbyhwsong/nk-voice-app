@@ -206,35 +206,6 @@ async def save_user_data(user_data: UserData):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"데이터 저장 중 오류가 발생했습니다: {str(e)}")
 
-@app.post("/api/square", response_model=SquareResponse)
-async def calculate_square(request: NumberRequest):
-    """숫자를 받아서 제곱을 계산하는 API"""
-    try:
-        number = request.number
-        squared = number * number
-        
-        return SquareResponse(
-            original=number,
-            squared=squared,
-            message=f"{number}의 제곱은 {squared}입니다."
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="서버 오류가 발생했습니다.")
-
-@app.get("/api/square/{number}", response_model=SquareResponse)
-async def calculate_square_get(number: float):
-    """GET 요청으로 숫자의 제곱을 계산하는 API"""
-    try:
-        squared = number * number
-        
-        return SquareResponse(
-            original=number,
-            squared=squared,
-            message=f"{number}의 제곱은 {squared}입니다."
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="서버 오류가 발생했습니다.")
-
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
     """헬스체크 API"""
@@ -267,14 +238,13 @@ async def chat_with_doctor(request: ChatRequest):
         openai.api_key = openai_api_key
         
         # 의사 역할 프롬프트
-        system_prompt = """당신은 경험 많은 내과 의사입니다. 환자와의 대화에서 다음 사항을 지켜주세요:
+        system_prompt = """당신은 50대 남성의 경험 많은 내과 의사입니다. 환자와의 대화에서 다음 사항을 지켜주세요:
 
-1. 친근하고 전문적인 태도로 응답하세요
-2. 환자의 증상을 정확히 파악하기 위해 구체적인 질문을 하세요
-3. 의학적 용어는 쉽게 설명하세요
-4. 환자의 불안을 해소하고 안심시켜주세요
-5. 필요시 추가 검사나 치료 방안을 제안하세요
-6. 한국어로 자연스럽게 대화하세요
+1. 무심한 듯한 말투로 대화하세요.
+2. 환자의 증상을 파악하기 위한 질문을 하세요.
+3. 환자에게 향후 조치에 대해 간단하게만 알려주세요.
+4. 의학용어는 쉽게 설명하되, 간결하게 하세요.
+5. 길게 말하지 말고, 존대말로 하세요.
 
 환자의 메시지에 대해 의사로서 적절한 응답을 해주세요."""
 
@@ -512,14 +482,14 @@ async def analyze_voice(request: VoiceAnalysisRequest):
         
         # LLM을 사용한 음성 분석 프롬프트
         analysis_prompt = f"""
-다음은 의료 진료 연습 중 환자의 대화입니다. 말투와 단어 선택을 중심으로 분석해주세요.
+다음은 의료 진료 연습 중 환자와의 대화입니다. 말투와 단어 선택을 중심으로 분석해주세요.
 환자가 북한이탈주민이라서 걱정이 많습니다.
 특히 긍정적인 측면에 초점을 맞춰주세요.
 
 환자의 대화:
 {combined_messages}
 
-다음 관점에서 분석해주세요:
+다음 관점에서 분석하고 긍정적으로 평가해주세요:
 1. 말투의 특징 (예: 정중함, 친근함, 명확성 등)
 2. 단어 선택의 적절성 (의료 용어 사용, 구체적인 표현 등)
 3. 대화의 자연스러움 (문장의 흐름, 표현의 자연스러움)
@@ -542,7 +512,7 @@ async def analyze_voice(request: VoiceAnalysisRequest):
             response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": "당신은 의료 진료 연습을 위한 대화 분석 전문가입니다. 환자의 대화 스타일을 객관적이고 건설적으로 분석해주세요."},
+                    {"role": "system", "content": "당신은 대화 분석 전문가입니다. 환자의 대화 스타일을 분석하고, 긍정적인 면을 구체적으로 칭찬해주세요."},
                     {"role": "user", "content": analysis_prompt}
                 ],
                 temperature=0.7,
@@ -664,7 +634,7 @@ async def evaluate_conversation(request: EvaluationRequest):
         
         # 평가 기준 정의
         evaluation_criteria = """
-의료 진료 연습에서 평가해야 할 핵심 체크리스트:
+환자가 의료 진료 연습에서 꼭 알아야하는 10가지:
 
 환자 입장에서 꼭 말해야 하는 것:
 1. symptom_location: 어디가 아픈지 구체적인 위치
@@ -673,20 +643,21 @@ async def evaluate_conversation(request: EvaluationRequest):
 4. current_medication: 현재 복용 중인 약물
 5. allergy_info: 알레르기 여부
 
-진료과정 중에 꼭 들어야 하는 것:
+진료과정 중에 의사한테 꼭 들어야 하는 것:
 6. diagnosis_info: 의사의 진단명과 진단 근거
 7. prescription_info: 처방약의 이름과 복용 방법
 8. side_effects: 약의 부작용과 주의사항
 9. followup_plan: 다음 진료 계획과 재방문 시기
 10. emergency_plan: 증상 악화 시 언제 다시 와야 하는지
 
-각 항목에 대해 상(100%), 중(60%), 하(30%) 등급을 매기고, 구체적인 이유를 설명해주세요.
+각 항목에 대해 상, 중, 하 등급을 매기고, 구체적인 이유를 설명해주세요.
+환자 입장에서 꼭 말해야할 것을 말했는지, 의사한테 꼭 들어야할 것을 들었는지를 평가해주세요.
 중,하인 경우에만 개선 제안을 제공해주세요.
 """
         
         # LLM을 사용한 평가 프롬프트
         evaluation_prompt = f"""
-다음은 의료 진료 연습의 대화 내용입니다. 위의 평가 기준에 따라 각 항목을 평가해주세요.
+다음은 환자용 의료 진료 연습의 대화 내용입니다. 평가 기준에 따라 각 항목을 평가해주세요.
 
 대화 내용:
 {conversation_text}
@@ -740,9 +711,9 @@ async def evaluate_conversation(request: EvaluationRequest):
             # 최신 버전 (v1.0+)
             client = openai.OpenAI(api_key=openai_api_key)
             response = client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": "당신은 의료 진료 연습을 위한 평가 전문가입니다. 객관적이고 건설적인 평가를 제공해주세요."},
+                    {"role": "system", "content": "당신은 환자용 의료 진료 연습을 위한 평가 전문가입니다. 객관적이고 건설적인 평가를 제공해주세요."},
                     {"role": "user", "content": evaluation_prompt}
                 ],
                 temperature=0.7,
@@ -752,9 +723,9 @@ async def evaluate_conversation(request: EvaluationRequest):
             # 구버전 (v0.x)
             openai.api_key = openai_api_key
             response = openai.ChatCompletion.create(
-                model="gpt-4",
+                model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": "당신은 의료 진료 연습을 위한 평가 전문가입니다. 객관적이고 건설적인 평가를 제공해주세요."},
+                    {"role": "system", "content": "당신은 환자용 의료 진료 연습을 위한 평가 전문가입니다. 객관적이고 건설적인 평가를 제공해주세요."},
                     {"role": "user", "content": evaluation_prompt}
                 ],
                 temperature=0.7,
@@ -918,16 +889,15 @@ async def retry_chat(request: RetryChatRequest):
             raise HTTPException(status_code=500, detail="OpenAI API 키가 설정되지 않았습니다.")
         
         # 시스템 프롬프트 설정 (재연습용)
-        system_prompt = """당신은 상대의 의료진료 연습을 위한 의사입니다. 
-        환자와의 대화에서 다음 사항을 참고해서 답해주세요.
-        
-        1. 귀찮지만, 할 일은 하는 말투 사용.
-        2. 증상에 대해 물어보지만, 자세한 설명은 하지 않음.
-        3. 명확하게 설명하지만, 제대로 답변을 듣지는 않음.
-        4. **공감과 위로**: 환자의 감정에 공감하고 적절한 위로를 제공하세요.
-        5. **체계적인 마무리**: 진료를 정리하고 다음 단계를 명확히 안내하세요.
-        
-        """
+        system_prompt = """당신은 50대 남성의 경험 많은 내과 의사입니다. 환자와의 대화에서 다음 사항을 지켜주세요:
+
+1. 무심한 듯한 말투로 대화하세요.
+2. 환자의 증상을 파악하기 위한 질문을 하세요.
+3. 환자에게 향후 조치에 대해 간단하게만 알려주세요.
+4. 의학용어는 쉽게 설명하되, 간결하게 하세요.
+5. 길게 말하지 말고, 존대말로 하세요.
+
+환자의 메시지에 대해 의사로서 적절한 응답을 해주세요. """
         
         # 사용자 메시지에 컨텍스트 추가
         user_message = f"환자: {request.message}"
@@ -1711,7 +1681,7 @@ async def generate_cheatsheet(request: CheatsheetRequest):
 4. current_medication: 현재 복용 중인 약물
 5. allergy_info: 알레르기 여부
 
-(2) 진료과정 중에 꼭 들어야 하는 것:
+(2) 진료과정 중에 환자가 꼭 들어야 하는 것:
 6. diagnosis_info: 의사의 진단명과 진단 근거
 7. prescription_info: 처방약의 이름과 복용 방법
 8. side_effects: 약의 부작용과 주의사항
@@ -1744,7 +1714,7 @@ async def generate_cheatsheet(request: CheatsheetRequest):
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "당신은 환자를 위한 맞춤형 스크립트 생성 전문가입니다. 북한이탈주민의 특성을 고려하여 실용적이고 구체적인 스크립트를 제공해주세요."},
+                {"role": "system", "content": "당신은 환자를 위한 진료 시에 사용할 스크립트 생성 전문가입니다. 북한이탈주민의 특성을 고려하여 실용적이고 구체적인 스크립트를 제공해주세요."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
