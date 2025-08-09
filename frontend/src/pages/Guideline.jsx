@@ -9,7 +9,11 @@ const Guideline = () => {
     const [listenCheckboxes, setListenCheckboxes] = useState({
         listen1: false, listen2: false, listen3: false, listen4: false, listen5: false
     });
+    const [tipCheckboxes, setTipCheckboxes] = useState({
+        tip1: false, tip2: false, tip3: false
+    });
     const [startBtnDisabled, setStartBtnDisabled] = useState(true);
+    const [isPracticeMode, setIsPracticeMode] = useState(false);
 
     useEffect(() => {
         // 사용자 데이터 확인
@@ -22,6 +26,13 @@ const Guideline = () => {
         try {
             const user = JSON.parse(userData);
             console.log('사용자 정보:', user);
+            
+            // 연습 모드인지 확인 (참가자ID가 '연습'이거나 '테스트'인 경우)
+            const participantId = user.participantId || '';
+            if (participantId === '연습' || participantId === '테스트' || participantId.toLowerCase().includes('practice')) {
+                setIsPracticeMode(true);
+                console.log('🎯 연습 모드로 설정됨');
+            }
         } catch (error) {
             console.error('사용자 데이터 파싱 오류:', error);
             window.location.href = '/';
@@ -32,14 +43,19 @@ const Guideline = () => {
         // 현재 단계에 따라 버튼 활성화 상태 결정
         if (currentStep === 1) {
             const allPatientChecked = Object.values(patientCheckboxes).every(checked => checked);
-            setStartBtnDisabled(!allPatientChecked);
-        } else if (currentStep === 2) {
             const allListenChecked = Object.values(listenCheckboxes).every(checked => checked);
-            setStartBtnDisabled(!allListenChecked);
-        } else if (currentStep === 3) {
-            setStartBtnDisabled(false);
+            setStartBtnDisabled(!allPatientChecked || !allListenChecked);
+        } else if (currentStep === 2) {
+            // 연습 모드가 아닌 경우 모든 팁을 읽어야 함
+            if (!isPracticeMode) {
+                const allTipsChecked = Object.values(tipCheckboxes).every(checked => checked);
+                setStartBtnDisabled(!allTipsChecked);
+            } else {
+                // 연습 모드에서는 항상 버튼 활성화
+                setStartBtnDisabled(false);
+            }
         }
-    }, [currentStep, patientCheckboxes, listenCheckboxes]);
+    }, [currentStep, patientCheckboxes, listenCheckboxes, tipCheckboxes, isPracticeMode]);
 
     const handlePatientCheckboxChange = (id) => {
         setPatientCheckboxes(prev => ({
@@ -53,10 +69,11 @@ const Guideline = () => {
             [id]: !patientCheckboxes[id]
         };
         
-        const allChecked = Object.values(updatedCheckboxes).every(checked => checked);
-        if (allChecked) {
+        const allPatientChecked = Object.values(updatedCheckboxes).every(checked => checked);
+        const allListenChecked = Object.values(listenCheckboxes).every(checked => checked);
+        if (allPatientChecked && allListenChecked) {
             setTimeout(() => {
-                alert('✅ 1단계 체크리스트 완료!\n\n이제 위의 숫자 "2"를 클릭해서 2단계로 이동해주세요.');
+                alert('✅ 모든 체크리스트 완료!\n\n이제 위의 숫자 "2"를 클릭해서 2단계로 이동해주세요.');
             }, 100);
         }
     };
@@ -73,10 +90,31 @@ const Guideline = () => {
             [id]: !listenCheckboxes[id]
         };
         
-        const allChecked = Object.values(updatedCheckboxes).every(checked => checked);
-        if (allChecked) {
+        const allPatientChecked = Object.values(patientCheckboxes).every(checked => checked);
+        const allListenChecked = Object.values(updatedCheckboxes).every(checked => checked);
+        if (allPatientChecked && allListenChecked) {
             setTimeout(() => {
-                alert('✅ 2단계 체크리스트 완료!\n\n이제 위의 숫자 "3"을 클릭해서 3단계로 이동해주세요.');
+                alert('✅ 모든 체크리스트 완료!\n\n이제 위의 숫자 "2"를 클릭해서 2단계로 이동해주세요.');
+            }, 100);
+        }
+    };
+
+    const handleTipCheckboxChange = (id) => {
+        setTipCheckboxes(prev => ({
+            ...prev,
+            [id]: !prev[id]
+        }));
+        
+        // 모든 팁 체크리스트 완료 확인
+        const updatedCheckboxes = {
+            ...tipCheckboxes,
+            [id]: !tipCheckboxes[id]
+        };
+        
+        const allTipsChecked = Object.values(updatedCheckboxes).every(checked => checked);
+        if (allTipsChecked && !isPracticeMode) {
+            setTimeout(() => {
+                alert('✅ 모든 팁을 확인했습니다!\n\n이제 진료 연습을 시작할 수 있습니다.');
             }, 100);
         }
     };
@@ -86,27 +124,51 @@ const Guideline = () => {
     };
 
     const handleStartPractice = () => {
-        // 모든 체크리스트 완료 확인
-        const allPatientChecked = Object.values(patientCheckboxes).every(checked => checked);
-        const allListenChecked = Object.values(listenCheckboxes).every(checked => checked);
-        
-        if (!allPatientChecked || !allListenChecked) {
-            alert('모든 체크리스트를 완료해주세요!\n\n1단계: 환자 입장에서 꼭 말해야 하는 것\n2단계: 진료과정 중에 꼭 들어야 하는 것\n\n모든 항목에 체크한 후 시작 버튼을 눌러주세요.');
-            return;
+        // 연습 모드가 아닌 경우 모든 체크리스트 완료 확인
+        if (!isPracticeMode) {
+            const allPatientChecked = Object.values(patientCheckboxes).every(checked => checked);
+            const allListenChecked = Object.values(listenCheckboxes).every(checked => checked);
+            const allTipsChecked = Object.values(tipCheckboxes).every(checked => checked);
+            
+            if (!allPatientChecked || !allListenChecked) {
+                alert('모든 체크리스트를 완료해주세요!\n\n1단계: 환자 입장에서 꼭 말해야 하는 것과 진료과정 중에 꼭 들어야 하는 것\n\n모든 항목에 체크한 후 2단계로 이동해주세요.');
+                return;
+            }
+            
+            if (!allTipsChecked) {
+                alert('모든 팁을 확인해주세요!\n\n2단계: 효과적인 진료를 위한 팁\n\n모든 팁을 읽고 체크한 후 시작 버튼을 눌러주세요.');
+                return;
+            }
         }
         
         // 사용자 데이터에 가이드라인 완료 시간 추가
         const userData = JSON.parse(localStorage.getItem('userData'));
         userData.guidelineCompleted = new Date().toISOString();
+        userData.practiceMode = isPracticeMode; // 연습 모드 여부 저장
         localStorage.setItem('userData', JSON.stringify(userData));
         
         // 진료 연습 페이지로 이동
         window.location.href = '/chat';
     };
 
+    const handleSkipToChat = () => {
+        // 연습 모드에서 바로 채팅으로 이동
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        userData.guidelineSkipped = new Date().toISOString();
+        userData.practiceMode = true;
+        localStorage.setItem('userData', JSON.stringify(userData));
+        
+        window.location.href = '/chat';
+    };
+
     const renderStep1 = () => (
         <div className="guideline-section">
             <h2>🗣️ 환자 입장에서 꼭 말해야 하는 것</h2>
+            {isPracticeMode && (
+                <div className="practice-hint">
+                    💡 연습 모드: 체크하지 않아도 2단계에서 바로 시작할 수 있어요!
+                </div>
+            )}
             <div className="checklist">
                 <div className="checklist-item">
                     <input 
@@ -159,11 +221,7 @@ const Guideline = () => {
                     <label htmlFor="core5">알레르기 여부</label>
                 </div>
             </div>
-        </div>
-    );
 
-    const renderStep2 = () => (
-        <div className="guideline-section">
             <h2>👂 진료과정 중에 꼭 들어야 하는 것</h2>
             <div className="checklist">
                 <div className="checklist-item">
@@ -220,12 +278,29 @@ const Guideline = () => {
         </div>
     );
 
-    const renderStep3 = () => (
+    const renderStep2 = () => (
         <div className="guideline-section">
             <h2>💡 효과적인 진료를 위한 팁</h2>
+            {isPracticeMode && (
+                <div className="practice-hint">
+                    💡 연습 모드: 팁을 체크하지 않아도 바로 시작할 수 있어요!
+                </div>
+            )}
             <div className="tips">
                 <div className="tip-item">
-                    <div className="tip-icon">⏰</div>
+                    <div className="tip-header">
+                        <div className="tip-checkbox-container">
+                            <input 
+                                type="checkbox" 
+                                id="tip1" 
+                                className="check-input"
+                                checked={tipCheckboxes.tip1}
+                                onChange={() => handleTipCheckboxChange('tip1')}
+                            />
+                            <label htmlFor="tip1" className="tip-checkbox-label">읽었음</label>
+                        </div>
+                        <div className="tip-icon">⏰</div>
+                    </div>
                     <h3>충분한 시간 할애는 당신의 권리입니다</h3>
                     <ul>
                         <li>의사가 서두르더라도 증상을 충분히 설명하세요</li>
@@ -235,7 +310,19 @@ const Guideline = () => {
                 </div>
                 
                 <div className="tip-item">
-                    <div className="tip-icon">👤</div>
+                    <div className="tip-header">
+                        <div className="tip-checkbox-container">
+                            <input 
+                                type="checkbox" 
+                                id="tip2" 
+                                className="check-input"
+                                checked={tipCheckboxes.tip2}
+                                onChange={() => handleTipCheckboxChange('tip2')}
+                            />
+                            <label htmlFor="tip2" className="tip-checkbox-label">읽었음</label>
+                        </div>
+                        <div className="tip-icon">👤</div>
+                    </div>
                     <h3>사람들은 생각보다 당신의 배경에 관심이 없습니다</h3>
                     <ul>
                         <li>부끄러워하지 말고 솔직하게 증상을 설명하세요</li>
@@ -245,7 +332,19 @@ const Guideline = () => {
                 </div>
                 
                 <div className="tip-item">
-                    <div className="tip-icon">📝</div>
+                    <div className="tip-header">
+                        <div className="tip-checkbox-container">
+                            <input 
+                                type="checkbox" 
+                                id="tip3" 
+                                className="check-input"
+                                checked={tipCheckboxes.tip3}
+                                onChange={() => handleTipCheckboxChange('tip3')}
+                            />
+                            <label htmlFor="tip3" className="tip-checkbox-label">읽었음</label>
+                        </div>
+                        <div className="tip-icon">📝</div>
+                    </div>
                     <h3>구체적이고, 적극적으로 이야기하세요</h3>
                     <ul>
                         <li>증상을 구체적으로 설명하세요</li>
@@ -255,12 +354,20 @@ const Guideline = () => {
                 </div>
             </div>
             <div className="step-navigation">
+                {isPracticeMode && (
+                    <button 
+                        className="nav-btn skip-btn"
+                        onClick={handleSkipToChat}
+                    >
+                        🏃‍♂️ 가이드라인 스킵하고 바로 연습하기
+                    </button>
+                )}
                 <button 
                     className={`nav-btn start-btn ${startBtnDisabled ? 'disabled' : ''}`}
-                    disabled={startBtnDisabled}
+                    disabled={startBtnDisabled && !isPracticeMode}
                     onClick={handleStartPractice}
                 >
-                    진료 연습 시작 →
+                    {isPracticeMode ? '📖 가이드라인 읽고 시작하기' : '진료 연습 시작 →'}
                 </button>
             </div>
         </div>
@@ -272,8 +379,6 @@ const Guideline = () => {
                 return renderStep1();
             case 2:
                 return renderStep2();
-            case 3:
-                return renderStep3();
             default:
                 return renderStep1();
         }
@@ -293,6 +398,11 @@ const Guideline = () => {
                     </button>
                 </div>
                 <h1>진료 전 확인사항</h1>
+                {isPracticeMode && (
+                    <div className="practice-mode-notice">
+                        🎯 연습 모드: 체크리스트를 완료하지 않아도 바로 시작할 수 있습니다
+                    </div>
+                )}
                 <div className="step-indicator">
                     <span 
                         className={`step ${currentStep >= 1 ? 'active' : ''} ${currentStep === 1 ? 'current' : ''}`}
@@ -305,12 +415,6 @@ const Guideline = () => {
                         onClick={() => handleStepClick(2)}
                     >
                         2
-                    </span>
-                    <span 
-                        className={`step ${currentStep >= 3 ? 'active' : ''} ${currentStep === 3 ? 'current' : ''}`}
-                        onClick={() => handleStepClick(3)}
-                    >
-                        3
                     </span>
                 </div>
             </header>

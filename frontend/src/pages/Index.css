@@ -10,6 +10,7 @@ body {
   min-height: 100vh;
   width: 100%;
   overflow-x: hidden;
+  padding: 0;
 }
 
 .container {
@@ -18,10 +19,9 @@ body {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   max-width: none;
   width: 98%;
-  margin: 0 auto;
-  overflow: hidden;
-  min-height: 50vh;
-  max-height: 75vh;
+  margin: 20px auto;
+  overflow: visible;
+  min-height: auto;
   display: flex;
   flex-direction: column;
 }
@@ -52,8 +52,6 @@ header p {
   align-items: center;
   padding: 30px;
   flex: 1;
-  min-height: 0;
-  overflow-y: auto;
 }
 
 .login-form {

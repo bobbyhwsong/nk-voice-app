@@ -3,18 +3,57 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import './Cheatsheet.css';
 
+// 영어 제목을 한글로 변환하는 함수
+const translateTitle = (englishTitle) => {
+    const titleMap = {
+        'symptom_location': '증상 위치',
+        'symptom_timing': '증상 발생 시기',
+        'symptom_severity': '증상 심각도',
+        'current_medication': '현재 복용 중인 약물',
+        'allergy_info': '알레르기 정보',
+        'diagnosis_info': '진단 정보',
+        'prescription_info': '처방 정보',
+        'side_effects': '부작용',
+        'followup_plan': '추후 계획',
+        'emergency_plan': '응급 계획'
+    };
+    
+    return titleMap[englishTitle] || englishTitle;
+};
+
 const Cheatsheet = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [loading, setLoading] = useState(false);
     const [cheatsheetData, setCheatsheetData] = useState(null);
     const [voiceAnalysis, setVoiceAnalysis] = useState(null);
+    const [completedItems, setCompletedItems] = useState(new Set()); // 완료된 아이템들 추적
     const [error, setError] = useState(null);
     const [showPsychologicalPopup, setShowPsychologicalPopup] = useState(true);
     const [canClosePopup, setCanClosePopup] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
+    
+    // 각 섹션에 대한 ref
+    const cheatsheetContentRef = useRef();
+    const scriptSectionRef = useRef();
+    const listeningSectionRef = useRef();
+    const voiceAnalysisRef = useRef();
 
     // useEffect에서 자동 치트시트 생성 제거 - 사용자가 직접 생성 버튼을 눌러야 함
+
+    // 아이템 완료 상태 토글 함수
+    const toggleItemCompletion = (itemType, index) => {
+        const itemKey = `${itemType}-${index}`;
+        const newCompletedItems = new Set(completedItems);
+        
+        if (newCompletedItems.has(itemKey)) {
+            newCompletedItems.delete(itemKey);
+        } else {
+            newCompletedItems.add(itemKey);
+        }
+        
+        setCompletedItems(newCompletedItems);
+    };
 
     // API 기본 URL 설정
     const getApiBaseUrl = () => {
@@ -31,6 +70,43 @@ const Cheatsheet = () => {
         }
         
         return 'http://localhost:8000';
+    };
+
+    // ngrok 요청을 위한 헤더 설정
+    const getRequestHeaders = () => {
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        
+        // ngrok 환경에서 필요한 헤더 추가
+        const apiBaseUrl = getApiBaseUrl();
+        if (apiBaseUrl.includes('ngrok-free.app') || apiBaseUrl.includes('ngrok.io')) {
+            headers['ngrok-skip-browser-warning'] = 'true';
+            headers['User-Agent'] = 'Mozilla/5.0 (compatible; API-Client)';
+        }
+        
+        return headers;
+    };
+
+    // timeout이 포함된 fetch 함수
+    const fetchWithTimeout = async (url, options, timeout = 30000) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        try {
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            return response;
+        } catch (error) {
+            clearTimeout(timeoutId);
+            if (error.name === 'AbortError') {
+                throw new Error('timeout');
+            }
+            throw error;
+        }
     };
 
     const initializeCheatsheet = async () => {
@@ -52,15 +128,13 @@ const Cheatsheet = () => {
             // LLM API 호출 (음성분석은 백엔드에서 처리)
             const apiBaseUrl = getApiBaseUrl();
             
-            const response = await fetch(`${apiBaseUrl}/api/generate-cheatsheet`, {
+            const response = await fetchWithTimeout(`${apiBaseUrl}/api/generate-cheatsheet`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getRequestHeaders(),
                 body: JSON.stringify({
                     participant_id: participantId
                 })
-            });
+            }, 60000); // 치트시트 생성은 시간이 더 걸릴 수 있으므로 60초
 
             const data = await response.json();
 
@@ -77,9 +151,6 @@ const Cheatsheet = () => {
                 }
                 // 치트시트가 준비되면 팝업 닫기 가능하도록 설정
                 setCanClosePopup(true);
-                
-                // 치트시트를 로그에 저장
-                await saveCheatsheetToLog(participantId, data.cheatsheet, data.voice_analysis);
             } else {
                 console.error('치트시트 생성 오류:', data.error);
                 setError('스크립트 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
@@ -88,44 +159,26 @@ const Cheatsheet = () => {
 
         } catch (error) {
             console.error('치트시트 생성 네트워크 오류:', error);
-            setError('서버 연결에 실패했습니다. 네트워크 연결을 확인해주세요.');
+            
+            // 네트워크 오류 유형에 따른 상세한 에러 메시지
+            let errorMessage = '서버 연결에 실패했습니다.';
+            
+            if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                errorMessage = 'ngrok 서버에 연결할 수 없습니다. URL을 확인하거나 잠시 후 다시 시도해주세요.';
+            } else if (error.message.includes('CORS')) {
+                errorMessage = 'CORS 오류가 발생했습니다. 서버 설정을 확인해주세요.';
+            } else if (error.message.includes('timeout')) {
+                errorMessage = '서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.';
+            }
+            
+            setError(errorMessage + ' 네트워크 연결을 확인해주세요.');
             // 네트워크 오류 시에도 기본 데이터는 설정하지 않음
         } finally {
             setLoading(false);
         }
     };
 
-    const saveCheatsheetToLog = async (participantId, cheatsheetData, voiceAnalysisData) => {
-        try {
-            const apiBaseUrl = getApiBaseUrl();
 
-            const logData = {
-                participant_id: participantId,
-                timestamp: new Date().toISOString(),
-                cheatsheet: cheatsheetData,
-                voice_analysis: voiceAnalysisData,
-                page_type: 'cheatsheet'
-            };
-
-            const response = await fetch(`${apiBaseUrl}/api/save-cheatsheet-log`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                body: JSON.stringify(logData)
-            });
-
-            const result = await response.json();
-            
-            if (result.status === 'success') {
-                console.log('치트시트 로그 저장 완료:', result.log_id);
-            } else {
-                console.error('치트시트 로그 저장 실패:', result.error);
-            }
-        } catch (error) {
-            console.error('치트시트 로그 저장 중 오류:', error);
-        }
-    };
 
     // 음성분석은 백엔드에서 처리하므로 프론트엔드에서는 제거
     // const generateVoiceAnalysis = async (participantId) => {
@@ -266,6 +319,106 @@ const Cheatsheet = () => {
         } catch (error) {
             console.error('이미지 다운로드 오류:', error);
             showNotification('이미지 다운로드 중 오류가 발생했습니다.', 'error');
+        }
+    };
+
+    // 스크립트 섹션만 이미지로 다운로드
+    const downloadScriptAsImage = async () => {
+        if (!scriptSectionRef.current) return;
+
+        try {
+            const canvas = await html2canvas(scriptSectionRef.current, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                allowTaint: true
+            });
+
+            const now = new Date();
+            const dateStr = now.getFullYear() +
+                String(now.getMonth() + 1).padStart(2, '0') +
+                String(now.getDate()).padStart(2, '0') + '_' +
+                String(now.getHours()).padStart(2, '0') +
+                String(now.getMinutes()).padStart(2, '0');
+
+            const link = document.createElement('a');
+            link.download = `스크립트_${dateStr}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        } catch (error) {
+            console.error('스크립트 이미지 다운로드 실패:', error);
+            showNotification('스크립트 이미지 다운로드에 실패했습니다.', 'error');
+        }
+    };
+
+    // 청취 항목 섹션만 이미지로 다운로드
+    const downloadListeningAsImage = async () => {
+        if (!listeningSectionRef.current) return;
+
+        try {
+            const canvas = await html2canvas(listeningSectionRef.current, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                allowTaint: true
+            });
+
+            const now = new Date();
+            const dateStr = now.getFullYear() +
+                String(now.getMonth() + 1).padStart(2, '0') +
+                String(now.getDate()).padStart(2, '0') + '_' +
+                String(now.getHours()).padStart(2, '0') +
+                String(now.getMinutes()).padStart(2, '0');
+
+            const link = document.createElement('a');
+            link.download = `청취항목_${dateStr}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        } catch (error) {
+            console.error('청취 항목 이미지 다운로드 실패:', error);
+            showNotification('청취 항목 이미지 다운로드에 실패했습니다.', 'error');
+        }
+    };
+
+    // 스크립트 섹션만 텍스트로 복사
+    const copyScriptOnly = async () => {
+        if (!cheatsheetData || !cheatsheetData.script) return;
+
+        try {
+            let textContent = '💬 실제 말할 스크립트\n';
+            textContent += '='.repeat(30) + '\n\n';
+
+            cheatsheetData.script.forEach((item, index) => {
+                textContent += `${index + 1}. ${translateTitle(item.title)}\n`;
+                textContent += `   ${item.content}\n\n`;
+            });
+
+            await navigator.clipboard.writeText(textContent);
+            showNotification('스크립트가 클립보드에 복사되었습니다.', 'success');
+        } catch (error) {
+            console.error('스크립트 복사 실패:', error);
+            showNotification('스크립트 복사에 실패했습니다.', 'error');
+        }
+    };
+
+    // 청취 항목 섹션만 텍스트로 복사
+    const copyListeningOnly = async () => {
+        if (!cheatsheetData || !cheatsheetData.listening) return;
+
+        try {
+            let textContent = '👂 무조건 들어야 하는 것\n';
+            textContent += '='.repeat(30) + '\n\n';
+
+            cheatsheetData.listening.forEach((item, index) => {
+                textContent += `${index + 1}. ${translateTitle(item.title)}\n`;
+                textContent += `   ${item.content}\n\n`;
+            });
+
+            await navigator.clipboard.writeText(textContent);
+            showNotification('청취 항목이 클립보드에 복사되었습니다.', 'success');
+        } catch (error) {
+            console.error('청취 항목 복사 실패:', error);
+            showNotification('청취 항목 복사에 실패했습니다.', 'error');
         }
     };
 
@@ -446,31 +599,48 @@ const Cheatsheet = () => {
             }
 
             const apiBaseUrl = getApiBaseUrl();
-            const response = await fetch(`${apiBaseUrl}/api/save-cheatsheet`, {
+            
+            // 치트시트와 음성분석 결과를 함께 저장
+            const saveData = {
+                participant_id: participantId,
+                cheatsheet_data: cheatsheetData,
+                voice_analysis: voiceAnalysis, // 음성분석 결과도 함께 저장
+                timestamp: new Date().toISOString()
+            };
+            
+            console.log('💾 완료 버튼 - 저장할 데이터:', saveData);
+            
+            const response = await fetchWithTimeout(`${apiBaseUrl}/api/save-cheatsheet`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    participant_id: participantId,
-                    cheatsheet_data: cheatsheetData,
-                    timestamp: new Date().toISOString()
-                })
+                headers: getRequestHeaders(),
+                body: JSON.stringify(saveData)
             });
 
             const result = await response.json();
             
             if (result.status === 'success') {
                 showNotification('치트시트가 성공적으로 저장되었습니다.', 'success');
+                console.log('✅ 치트시트 저장 완료:', result);
                 setTimeout(() => {
                     navigate('/');
                 }, 1500);
             } else {
+                console.error('치트시트 저장 실패:', result);
                 showNotification('치트시트 저장 중 오류가 발생했습니다.', 'error');
             }
         } catch (error) {
             console.error('치트시트 저장 오류:', error);
-            showNotification('치트시트 저장 중 오류가 발생했습니다.', 'error');
+            
+            // 네트워크 오류 유형에 따른 상세한 에러 메시지
+            let errorMessage = '치트시트 저장 중 오류가 발생했습니다.';
+            
+            if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                errorMessage = 'ngrok 서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.';
+            } else if (error.message.includes('timeout')) {
+                errorMessage = '서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.';
+            }
+            
+            showNotification(errorMessage, 'error');
         }
     };
 
@@ -621,7 +791,7 @@ const Cheatsheet = () => {
             </header>
 
             <div className="content">
-                <div className="cheatsheet-container" id="cheatsheetContainer">
+                <div className="cheatsheet-container" id="cheatsheetContainer" ref={cheatsheetContentRef}>
                     {/* 치트시트가 없을 때 보여줄 화면 */}
                     {!cheatsheetData && (
                         <div className="no-cheatsheet-state">
@@ -667,15 +837,23 @@ const Cheatsheet = () => {
                     {cheatsheetData && (
                         <div className="parallel-sections">
                             {/* 왼쪽: 말해야 하는 것 */}
-                            <div className="script-div left-section">
+                            <div className="script-div left-section" ref={scriptSectionRef}>
                                 <h3>💬 무조건 말해야 하는 것</h3>
                                 {cheatsheetData?.script && cheatsheetData.script.length > 0 ? (
-                                    cheatsheetData.script.map((item, index) => (
-                                        <div key={index} className="script-item">
-                                            <h4>{item.title || `핵심 ${index + 1}`}</h4>
-                                            <p>{item.content}</p>
-                                        </div>
-                                    ))
+                                    cheatsheetData.script.map((item, index) => {
+                                        const itemKey = `script-${index}`;
+                                        const isCompleted = completedItems.has(itemKey);
+                                        return (
+                                            <div 
+                                                key={index} 
+                                                className={`script-item ${isCompleted ? 'completed' : ''}`}
+                                                onClick={() => toggleItemCompletion('script', index)}
+                                            >
+                                                <h4>{translateTitle(item.title) || `핵심 ${index + 1}`}</h4>
+                                                <p>{item.content}</p>
+                                            </div>
+                                        );
+                                    })
                                 ) : (
                                     <div className="script-item">
                                         <p>생성된 스크립트가 없습니다.</p>
@@ -684,15 +862,23 @@ const Cheatsheet = () => {
                             </div>
 
                             {/* 오른쪽: 들어야 하는 것 */}
-                            <div className="listening-div right-section">
+                            <div className="listening-div right-section" ref={listeningSectionRef}>
                                 <h3>👂 무조건 들어야 하는 것</h3>
                                 {cheatsheetData?.listening && cheatsheetData.listening.length > 0 ? (
-                                    cheatsheetData.listening.map((item, index) => (
-                                        <div key={index} className="listening-item">
-                                            <h4>{item.title || `핵심 ${index + 1}`}</h4>
-                                            <p>{item.content}</p>
-                                        </div>
-                                    ))
+                                    cheatsheetData.listening.map((item, index) => {
+                                        const itemKey = `listening-${index}`;
+                                        const isCompleted = completedItems.has(itemKey);
+                                        return (
+                                            <div 
+                                                key={index} 
+                                                className={`listening-item ${isCompleted ? 'completed' : ''}`}
+                                                onClick={() => toggleItemCompletion('listening', index)}
+                                            >
+                                                <h4>{translateTitle(item.title) || `핵심 ${index + 1}`}</h4>
+                                                <p>{item.content}</p>
+                                            </div>
+                                        );
+                                    })
                                 ) : (
                                     <div className="listening-item">
                                         <p>생성된 내용이 없습니다.</p>
@@ -709,15 +895,43 @@ const Cheatsheet = () => {
             {/* 액션 버튼들은 치트시트 컨테이너 밖에 별도로 배치 */}
             {cheatsheetData && (
                 <div className="action-buttons">
-                    <button className="action-btn copy-btn" onClick={copyCheatsheet}>
-                        📋 전체 복사
-                    </button>
-                    <button className="action-btn download-img-btn" onClick={downloadAsImage}>
-                        📸 이미지로 다운로드
-                    </button>
-                    <button className="action-btn finish-btn" onClick={finishCheatsheet}>
-                        🎉 완료
-                    </button>
+                    <div className="main-buttons">
+                        <div className="copy-buttons-group">
+                            <button className="action-btn copy-btn" onClick={copyCheatsheet}>
+                                📋 전체복사
+                            </button>
+                            {cheatsheetData?.script && (
+                                <button className="action-btn script-copy-btn" onClick={copyScriptOnly}>
+                                    💬 스크립트만 복사
+                                </button>
+                            )}
+                            {cheatsheetData?.listening && (
+                                <button className="action-btn listening-copy-btn" onClick={copyListeningOnly}>
+                                    👂 청취항목만 복사
+                                </button>
+                            )}
+                        </div>
+                        <div className="image-buttons-group">
+                            <button className="action-btn download-img-btn" onClick={downloadAsImage}>
+                                📸 전체 이미지 다운로드
+                            </button>
+                            {cheatsheetData?.script && (
+                                <button className="action-btn script-download-btn" onClick={downloadScriptAsImage}>
+                                    📸 스크립트 이미지
+                                </button>
+                            )}
+                            {cheatsheetData?.listening && (
+                                <button className="action-btn listening-download-btn" onClick={downloadListeningAsImage}>
+                                    📸 청취항목 이미지
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                    <div className="finish-button-container">
+                        <button className="action-btn finish-btn" onClick={finishCheatsheet}>
+                            🎉 완료
+                        </button>
+                    </div>
                 </div>
             )}
 

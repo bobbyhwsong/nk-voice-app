@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uvicorn
 import os
@@ -19,10 +20,10 @@ app = FastAPI(title="NK Voice Backend", version="1.0.0")
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # ngrok 환경에서도 모든 origin 허용
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"],  # ngrok-skip-browser-warning 헤더 포함
 )
 
 # Pydantic 모델
@@ -141,23 +142,41 @@ class GetCheatsheetHistoryResponse(BaseModel):
     cheatsheets: list
     message: str
 
-# 로그 디렉토리 생성
-LOG_DIR = "logs"
+# 로그 디렉토리 생성 (절대 경로 사용)
+LOG_DIR = os.path.abspath("logs")
 if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR)
+    os.makedirs(LOG_DIR, exist_ok=True)
+    print(f"📁 로그 디렉토리 생성: {LOG_DIR}")
 
-# 데이터 디렉토리 생성
-DATA_DIR = "data"
+# 데이터 디렉토리 생성 (절대 경로 사용)
+DATA_DIR = os.path.abspath("data")
 if not os.path.exists(DATA_DIR):
-    os.makedirs(DATA_DIR)
+    os.makedirs(DATA_DIR, exist_ok=True)
+    print(f"📁 데이터 디렉토리 생성: {DATA_DIR}")
+
+# 정적 파일 서빙 설정 (logs 폴더를 /static으로 마운트)
+# 디렉토리가 생성된 후에 마운트
+app.mount("/static", StaticFiles(directory="logs"), name="static")
+print(f"📁 정적 파일 서빙 설정: logs -> /static")
+
+def ensure_directory_exists(directory_path):
+    """디렉토리가 존재하지 않으면 생성하는 안전한 함수"""
+    try:
+        if not os.path.exists(directory_path):
+            os.makedirs(directory_path, exist_ok=True)
+            print(f"📁 디렉토리 생성: {directory_path}")
+        return True
+    except Exception as e:
+        print(f"❌ 디렉토리 생성 실패: {directory_path} - {str(e)}")
+        return False
 
 def save_user_log(user_data: UserData):
     """참가자 ID별로 로그를 저장하는 함수"""
     try:
         # 참가자 ID로 폴더 생성
         participant_dir = os.path.join(LOG_DIR, user_data.participantId)
-        if not os.path.exists(participant_dir):
-            os.makedirs(participant_dir)
+        if not ensure_directory_exists(participant_dir):
+            return False
         
         # 로그 파일명 생성 (날짜_시간.json)
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -209,9 +228,13 @@ async def save_user_data(user_data: UserData):
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
     """헬스체크 API"""
+    # 로그 디렉토리 상태 확인
+    log_status = "OK" if os.path.exists(LOG_DIR) else "ERROR"
+    data_status = "OK" if os.path.exists(DATA_DIR) else "ERROR"
+    
     return HealthResponse(
         status="OK",
-        message="Backend 서버가 정상적으로 작동중입니다."
+        message=f"Backend 서버가 정상적으로 작동중입니다. 로그 디렉토리: {log_status}, 데이터 디렉토리: {data_status}"
     )
 
 @app.get("/env-info")
@@ -222,7 +245,12 @@ async def env_info():
         "elevenlabs_api_key_set": bool(os.getenv("ELEVENLABS_API_KEY")),
         "elevenlabs_voice_id": os.getenv("ELEVENLABS_VOICE_ID", "BNr4zvrC1bGIdIstzjFQ"),
         "openai_api_key_length": len(os.getenv("OPENAI_API_KEY", "")),
-        "elevenlabs_api_key_length": len(os.getenv("ELEVENLABS_API_KEY", ""))
+        "elevenlabs_api_key_length": len(os.getenv("ELEVENLABS_API_KEY", "")),
+        "log_directory": LOG_DIR,
+        "log_directory_exists": os.path.exists(LOG_DIR),
+        "data_directory": DATA_DIR,
+        "data_directory_exists": os.path.exists(DATA_DIR),
+        "current_working_directory": os.getcwd()
     }
 
 @app.post("/api/chat", response_model=ChatResponse)
@@ -276,13 +304,11 @@ async def chat_with_doctor(request: ChatRequest):
         
         # 참가자별 디렉토리 생성 (먼저 생성)
         participant_dir = os.path.join(LOG_DIR, request.participantId)
-        if not os.path.exists(participant_dir):
-            os.makedirs(participant_dir)
+        ensure_directory_exists(participant_dir)
         
         # 세션별 디렉토리 생성
         session_dir = os.path.join(participant_dir, request.sessionId)
-        if not os.path.exists(session_dir):
-            os.makedirs(session_dir)
+        ensure_directory_exists(session_dir)
         
         # 세션 파일명 생성 (세션ID.json)
         session_filename = f"chat_session.json"
@@ -326,7 +352,7 @@ async def chat_with_doctor(request: ChatRequest):
                     with open(audio_filepath, 'wb') as f:
                         f.write(audio_response.content)
                     
-                    # 오디오 URL 생성 (실제 배포시에는 CDN URL로 변경)
+                    # 오디오 URL 생성 (전용 API 엔드포인트 사용)
                     audio_url = f"/api/audio/{request.participantId}/{request.sessionId}/{audio_filename}"
                     
                     print(f"✅ ElevenLabs 음성 생성 완료: {audio_filepath}")
@@ -401,6 +427,8 @@ async def get_conversation_logs(participant_id: str):
         logs = []
         
         print(f"🔍 참가자 ID로 로그 조회: {participant_id}")
+        print(f"📁 로그 디렉토리 경로: {LOG_DIR}")
+        print(f"📁 로그 디렉토리 존재 여부: {os.path.exists(LOG_DIR)}")
         
         if participant_id:
             # 참가자별 세션 폴더 확인
@@ -408,6 +436,15 @@ async def get_conversation_logs(participant_id: str):
             print(f"📁 참가자 디렉토리: {participant_dir}")
             
             if os.path.exists(participant_dir):
+                print(f"✅ 참가자 디렉토리 존재: {participant_dir}")
+                
+                # 디렉토리 내용 전체 확인
+                try:
+                    all_items = os.listdir(participant_dir)
+                    print(f"📂 참가자 디렉토리 내용: {all_items}")
+                except Exception as e:
+                    print(f"❌ 디렉토리 읽기 오류: {e}")
+                    
                 # 세션 폴더들을 찾아서 가장 최근 세션 선택
                 session_folders = []
                 for item in os.listdir(participant_dir):
@@ -652,7 +689,7 @@ async def evaluate_conversation(request: EvaluationRequest):
 
 각 항목에 대해 상, 중, 하 등급을 매기고, 구체적인 이유를 설명해주세요.
 환자 입장에서 꼭 말해야할 것을 말했는지, 의사한테 꼭 들어야할 것을 들었는지를 평가해주세요.
-중,하인 경우에만 개선 제안을 제공해주세요.
+항목 평가가 중,하인 경우에만 개선 제안을 제공해주세요.
 """
         
         # LLM을 사용한 평가 프롬프트
@@ -864,18 +901,116 @@ async def get_audio_file(participant_id: str, session_id: str, filename: str):
     try:
         audio_filepath = os.path.join(LOG_DIR, participant_id, session_id, filename)
         
+        print(f"🔍 오디오 파일 요청: {audio_filepath}")
+        print(f"🔍 참가자 ID: {participant_id}")
+        print(f"🔍 세션 ID: {session_id}")
+        print(f"🔍 파일명: {filename}")
+        
         if not os.path.exists(audio_filepath):
+            print(f"❌ 오디오 파일 없음: {audio_filepath}")
+            # 디렉토리 구조 확인
+            session_dir = os.path.join(LOG_DIR, participant_id, session_id)
+            if os.path.exists(session_dir):
+                files_in_dir = os.listdir(session_dir)
+                print(f"📁 세션 디렉토리 내 파일들: {files_in_dir}")
+            else:
+                print(f"📁 세션 디렉토리 없음: {session_dir}")
+                participant_dir = os.path.join(LOG_DIR, participant_id)
+                if os.path.exists(participant_dir):
+                    sessions_in_dir = os.listdir(participant_dir)
+                    print(f"📁 참가자 디렉토리 내 세션들: {sessions_in_dir}")
+            
             raise HTTPException(status_code=404, detail="오디오 파일을 찾을 수 없습니다.")
         
-        return FileResponse(
+        # 파일 크기 확인
+        file_size = os.path.getsize(audio_filepath)
+        print(f"✅ 오디오 파일 찾음: {audio_filepath} (크기: {file_size} bytes)")
+        
+        # ngrok 환경에 최적화된 헤더
+        headers = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Expose-Headers": "*",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+            "Content-Disposition": f"inline; filename={filename}",
+            "Accept-Ranges": "bytes"  # 부분 요청 지원
+        }
+        
+        # ngrok 환경에서는 추가 헤더
+        if filename.endswith('.mp3'):
+            headers["Content-Type"] = "audio/mpeg"
+        
+        print(f"🎵 오디오 파일 전송 시작: {filename}")
+        
+        response = FileResponse(
             path=audio_filepath,
             media_type="audio/mpeg",
-            filename=filename
+            filename=filename,
+            headers=headers
         )
         
+        print(f"✅ 오디오 파일 응답 생성 완료: {filename}")
+        return response
+        
+    except HTTPException:
+        # HTTPException은 그대로 전달
+        raise
     except Exception as e:
         print(f"❌ 오디오 파일 제공 오류: {str(e)}")
         raise HTTPException(status_code=500, detail=f"오디오 파일 제공 중 오류가 발생했습니다: {str(e)}")
+
+# HEAD 요청 처리를 위한 별도 엔드포인트 추가
+@app.head("/api/audio/{participant_id}/{session_id}/{filename}")
+async def head_audio_file(participant_id: str, session_id: str, filename: str):
+    """오디오 파일 헤더 정보만 제공하는 API (HEAD 요청용)"""
+    try:
+        audio_filepath = os.path.join(LOG_DIR, participant_id, session_id, filename)
+        
+        print(f"🔍 오디오 파일 HEAD 요청: {audio_filepath}")
+        
+        if not os.path.exists(audio_filepath):
+            print(f"❌ 오디오 파일 없음: {audio_filepath}")
+            raise HTTPException(status_code=404, detail="오디오 파일을 찾을 수 없습니다.")
+        
+        file_size = os.path.getsize(audio_filepath)
+        print(f"✅ 오디오 파일 HEAD 응답: {audio_filepath} (크기: {file_size} bytes)")
+        
+        from fastapi import Response
+        return Response(
+            status_code=200,
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+                "Content-Type": "audio/mpeg",
+                "Content-Length": str(file_size),
+                "Accept-Ranges": "bytes"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ 오디오 파일 HEAD 요청 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"오디오 파일 헤더 요청 중 오류가 발생했습니다: {str(e)}")
+
+# OPTIONS 요청 처리를 위한 별도 엔드포인트 추가
+@app.options("/api/audio/{participant_id}/{session_id}/{filename}")
+async def options_audio_file(participant_id: str, session_id: str, filename: str):
+    """오디오 파일 OPTIONS 요청 처리 (CORS preflight)"""
+    from fastapi import Response
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Max-Age": "86400"
+        }
+    )
 
 @app.post("/chat", response_model=RetryChatResponse)
 async def retry_chat(request: RetryChatRequest):
@@ -918,13 +1053,15 @@ async def retry_chat(request: RetryChatRequest):
         
         # 대화 로그 저장
         try:
-            user_name = request.userData.get('name', 'Unknown')
+            # participant_id 우선, 없으면 name 사용
+            user_identifier = request.userData.get('participantId', request.userData.get('name', 'Unknown'))
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            log_filename = f"user_data_{user_name}_{timestamp}.json"
+            log_filename = f"user_data_{user_identifier}_{timestamp}.json"
             log_filepath = os.path.join(DATA_DIR, log_filename)
             
             log_data = {
                 "userData": request.userData,
+                "participant_id": user_identifier,  # 명시적으로 participant_id 저장
                 "sessionType": request.sessionType,
                 "timestamp": datetime.now().isoformat(),
                 "conversation": [
@@ -1634,45 +1771,101 @@ async def generate_cheatsheet(request: CheatsheetRequest):
         if not openai_api_key:
             raise HTTPException(status_code=500, detail="OpenAI API 키가 설정되지 않았습니다.")
         
-        # 참가자의 대화 로그 가져오기
-        participant_dir = os.path.join(LOG_DIR, participant_id)
-        if not os.path.exists(participant_dir):
-            raise HTTPException(status_code=404, detail="참가자 로그를 찾을 수 없습니다.")
-        
-        # 세션 디렉토리 찾기
-        session_dirs = [d for d in os.listdir(participant_dir) if d.startswith('session_')]
-        if not session_dirs:
-            raise HTTPException(status_code=404, detail="대화 세션을 찾을 수 없습니다.")
-        
-        # 최신 세션 선택
-        latest_session = max(session_dirs, key=lambda x: os.path.getctime(os.path.join(participant_dir, x)))
-        logs_filepath = os.path.join(participant_dir, latest_session, "chat_session.json")
-        
-        if not os.path.exists(logs_filepath):
-            raise HTTPException(status_code=404, detail="대화 로그를 찾을 수 없습니다.")
-        
-        # 로그 파일 읽기
-        with open(logs_filepath, 'r', encoding='utf-8') as f:
-            logs_data = json.load(f)
-        
-        # 대화 내용 추출
         conversation_text = ""
-        for log in logs_data.get('conversation', []):
-            if log.get('user_message'):
-                conversation_text += f"환자: {log['user_message']}\n"
-            if log.get('bot_response'):
-                conversation_text += f"의사: {log['bot_response']}\n"
+        
+        # 1. 정규 채팅 세션 데이터 수집 (logs 디렉토리)
+        participant_dir = os.path.join(LOG_DIR, participant_id)
+        if os.path.exists(participant_dir):
+            # 세션 디렉토리 찾기
+            session_dirs = [d for d in os.listdir(participant_dir) if d.startswith('session_')]
+            if session_dirs:
+                # 최신 세션 선택
+                latest_session = max(session_dirs, key=lambda x: os.path.getctime(os.path.join(participant_dir, x)))
+                logs_filepath = os.path.join(participant_dir, latest_session, "chat_session.json")
+                
+                if os.path.exists(logs_filepath):
+                    # 로그 파일 읽기
+                    with open(logs_filepath, 'r', encoding='utf-8') as f:
+                        logs_data = json.load(f)
+                    
+                    # 정규 세션 대화 내용 추출
+                    for message in logs_data.get('messages', []):
+                        if message.get('user_message'):
+                            conversation_text += f"환자: {message['user_message']}\n"
+                        if message.get('doctor_response'):
+                            conversation_text += f"의사: {message['doctor_response']}\n"
+                    
+                    print(f"✅ 정규 세션 대화 데이터 로드: {len(logs_data.get('messages', []))}개 메시지")
+        
+        # 2. Retry 채팅 데이터 수집 (data 디렉토리)
+        retry_conversation_text = ""
+        retry_files = []
+        
+        # participant_id와 매칭되는 retry 파일들 찾기
+        if os.path.exists(DATA_DIR):
+            for filename in os.listdir(DATA_DIR):
+                # participant_id로 시작하거나 파일 내용에서 participant_id가 매칭되는 파일 찾기
+                if filename.startswith(f"user_data_{participant_id}_") and filename.endswith('.json'):
+                    retry_files.append(filename)
+                elif filename.startswith("user_data_") and filename.endswith('.json'):
+                    # 파일 내용을 확인하여 participant_id 매칭
+                    try:
+                        temp_filepath = os.path.join(DATA_DIR, filename)
+                        with open(temp_filepath, 'r', encoding='utf-8') as f:
+                            temp_data = json.load(f)
+                        if temp_data.get('participant_id') == participant_id:
+                            retry_files.append(filename)
+                    except:
+                        continue
+        
+        # 최신 retry 파일들 처리 (최근 5개)
+        retry_files.sort(reverse=True)
+        for filename in retry_files[:5]:
+            try:
+                retry_filepath = os.path.join(DATA_DIR, filename)
+                with open(retry_filepath, 'r', encoding='utf-8') as f:
+                    retry_data = json.load(f)
+                
+                # retry 대화 내용 추출
+                if 'conversation' in retry_data:
+                    for msg in retry_data['conversation']:
+                        if msg['role'] == 'user':
+                            retry_conversation_text += f"환자: {msg['content']}\n"
+                        elif msg['role'] == 'assistant':
+                            retry_conversation_text += f"의사: {msg['content']}\n"
+            except Exception as e:
+                print(f"⚠️ Retry 파일 읽기 실패 {filename}: {e}")
+                continue
+        
+        if retry_conversation_text:
+            conversation_text += "\n--- Retry 연습 대화 ---\n" + retry_conversation_text
+            print(f"✅ Retry 대화 데이터 로드: {len(retry_files[:5])}개 파일")
+        
+        # 최종 대화 데이터 상태 로깅
+        total_chars = len(conversation_text)
+        print(f"📊 총 대화 데이터 크기: {total_chars}자")
+        
+        # 대화 데이터가 없는 경우
+        if not conversation_text.strip():
+            print(f"⚠️ 대화 데이터 없음 - participant_id: {participant_id}")
+            print(f"⚠️ LOG_DIR 상태: {os.path.exists(LOG_DIR)}")
+            print(f"⚠️ DATA_DIR 상태: {os.path.exists(DATA_DIR)}")
+            if os.path.exists(DATA_DIR):
+                data_files = [f for f in os.listdir(DATA_DIR) if f.startswith(f"user_data_{participant_id}_")]
+                print(f"⚠️ 참가자 관련 데이터 파일: {data_files}")
+            raise HTTPException(status_code=404, detail="대화 로그를 찾을 수 없습니다.")
         
         # LLM 프롬프트 구성
         prompt = f"""
-다음은 의료 진료 연습 대화입니다. 이 대화를 바탕으로 환자가 실제 진료에서 사용할 수 있는 맞춤형 스크립트를 생성해주세요.
+다음은 의료 진료 연습 대화입니다. 이 대화는 정규 진료 연습과 Retry 연습 대화를 모두 포함합니다. 
+이 모든 대화를 종합적으로 분석하여 환자가 실제 진료에서 사용할 수 있는 맞춤형 스크립트를 생성해주세요.
 
 참가자 ID: {participant_id}
 
 대화 내용:
-{conversation_text}0
+{conversation_text}
 
-대화 내용을 기반으로 다음 두 가지 섹션으로 구성된 진료 스크립트를 생성해주세요:
+대화 내용을 기반으로 환자의 실제 정보와 연습 경험을 반영하여, 다음 두 가지 섹션으로 구성된 진료 스크립트를 생성해주세요:
 
 (1) 환자 입장에서 꼭 말해야 하는 것:
 1. symptom_location: 어디가 아픈지 구체적인 위치

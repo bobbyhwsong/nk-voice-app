@@ -35,9 +35,9 @@ const Feedback = () => {
           return backendUrl;
         }
         
-        // ngrok 환경인지 확인
+        // ngrok 환경인지 확인 - 현재 frontend URL을 기반으로 backend URL 추정
         if (window.location.hostname.includes('ngrok-free.app') || window.location.hostname.includes('ngrok.io')) {
-          // ngrok 백엔드 URL 직접 사용
+          // ngrok static domain 사용 - 실제 backend domain으로 교체 필요
           return 'https://helpful-elf-carefully.ngrok-free.app';
         }
         
@@ -70,13 +70,39 @@ const Feedback = () => {
       
       console.log('🌐 API 요청 URL:', logsUrl);
       
-      const response = await fetch(logsUrl);
+      // ngrok 특수 헤더 추가
+      const requestHeaders = {
+        'Content-Type': 'application/json'
+      };
+      
+      // ngrok 환경에서 브라우저 경고 스킵
+      if (apiBaseUrl.includes('ngrok')) {
+        requestHeaders['ngrok-skip-browser-warning'] = 'true';
+      }
+      
+      const response = await fetch(logsUrl, {
+        method: 'GET',
+        headers: requestHeaders
+      });
       console.log('📡 응답 상태:', response.status);
       
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ HTTP 오류:', response.status, errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('❌ 요청 URL:', logsUrl);
+        console.error('❌ 요청 헤더:', requestHeaders);
+        
+        // 상세한 오류 메시지 제공
+        let errorMessage = `서버 오류 (${response.status})`;
+        if (response.status === 404) {
+          errorMessage = '대화 로그를 찾을 수 없습니다.';
+        } else if (response.status === 500) {
+          errorMessage = '서버 내부 오류가 발생했습니다.';
+        } else if (response.status === 0 || !navigator.onLine) {
+          errorMessage = '네트워크 연결을 확인해주세요.';
+        }
+        
+        throw new Error(errorMessage);
       }
       
       const data = await response.json();
@@ -100,7 +126,14 @@ const Feedback = () => {
       console.error('❌ 대화 로그 로드 오류:', error);
       setLogsLoaded(false);
       setConversationLogs([]);
-      alert(`대화 로그 로드 중 오류가 발생했습니다: ${error.message}`);
+      
+      // 사용자 친화적인 오류 메시지
+      let userMessage = error.message;
+      if (error.message.includes('Failed to fetch')) {
+        userMessage = 'Backend 서버에 연결할 수 없습니다. ngrok이 실행 중인지 확인해주세요.';
+      }
+      
+      alert(`대화 로그 로드 중 오류가 발생했습니다: ${userMessage}`);
     } finally {
       setIsLoadingLogs(false);
     }
@@ -137,11 +170,21 @@ const Feedback = () => {
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
       const participantId = userData.participantId || localStorage.getItem('participantId') || '';
 
+      // ngrok 특수 헤더 준비
+      const fetchHeaders = {
+        'Content-Type': 'application/json'
+      };
+      
+      // ngrok 환경에서 브라우저 경고 스킵
+      if (apiBaseUrl.includes('ngrok')) {
+        fetchHeaders['ngrok-skip-browser-warning'] = 'true';
+      }
+
       // 음성 분석과 평가를 동시에 실행
       const [voiceResponse, evaluationResponse] = await Promise.all([
         fetch(`${apiBaseUrl}/api/analyze-voice`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: fetchHeaders,
           body: JSON.stringify({
             messages: conversationLogs.map(log => log.user_message),
             participant_id: participantId,
@@ -150,7 +193,7 @@ const Feedback = () => {
         }),
         fetch(`${apiBaseUrl}/api/evaluate`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: fetchHeaders,
           body: JSON.stringify({
             logs: conversationLogs,
             participant_id: participantId,
@@ -264,7 +307,7 @@ const Feedback = () => {
     <div className="feedback-container">
       <header className="feedback-header">
         <div className="header-content">
-          <h1>📊 진료 연습 피드백</h1>
+          <h1>📊 피드백</h1>
           <div className="header-subtitle">
             <p>대화 분석 및 가이드라인 준수도 평가</p>
           </div>

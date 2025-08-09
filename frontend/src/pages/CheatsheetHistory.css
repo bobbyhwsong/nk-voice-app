@@ -1,30 +1,31 @@
 /* CheatsheetHistory 페이지 스타일 */
 
 .cheatsheet-history-page {
-    min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #333;
     font-size: 16px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding: 20px 0;
+    min-height: 100vh;
 }
 
 .history-header {
     text-align: center;
-    margin-bottom: 30px;
     background: rgba(255, 255, 255, 0.95);
     padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-    max-width: 900px;
-    margin: 0 auto 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 30px; /* 헤더와 컨텐츠 사이 간격 추가 */
+    position: relative; /* 네비게이션 버튼 위치 기준 */
 }
 
 .nav-buttons {
+    position: absolute;
+    top: 20px;
+    right: 20px;
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 25px;
+    gap: 10px;
+    z-index: 10;
 }
 
 .nav-btn {
@@ -54,21 +55,21 @@
     background-clip: text;
     font-weight: 700;
     letter-spacing: -1px;
+    margin-right: 120px; /* 네비게이션 버튼과 겹치지 않도록 여백 */
 }
 
 .history-header p {
     font-size: 1.2em;
     color: #666;
     font-weight: 500;
+    margin-right: 120px; /* 네비게이션 버튼과 겹치지 않도록 여백 */
 }
 
 .content {
     background: rgba(255, 255, 255, 0.95);
-    border-radius: 25px;
+    border-radius: 0 0 25px 25px;
     padding: 40px;
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
-    max-width: 900px;
-    margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(10px);
 }
 
@@ -133,6 +134,7 @@
     justify-content: space-between;
     align-items: center;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    gap: 30px; /* 히스토리 정보와 보기 버튼 사이 간격 */
 }
 
 .history-item:hover {
@@ -172,7 +174,7 @@
 }
 
 .view-btn {
-    padding: 12px 24px;
+    padding: 14px 28px; /* 패딩 증가 */
     border: none;
     border-radius: 25px;
     background: linear-gradient(45deg, #667eea, #764ba2);
@@ -182,6 +184,8 @@
     font-weight: 600;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    min-width: 80px; /* 최소 너비 설정 */
+    flex-shrink: 0; /* 버튼이 줄어들지 않도록 */
 }
 
 .view-btn:hover {
@@ -252,6 +256,132 @@
 
 .modal-body {
     padding: 30px;
+}
+
+/* 모달 액션 버튼들 */
+.modal-actions {
+    padding: 20px 30px;
+    border-top: 1px solid #e9ecef;
+    background: #f8f9fa;
+    border-radius: 0 0 20px 20px;
+}
+
+.action-row {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.action-row:last-child {
+    margin-bottom: 0;
+}
+
+.action-row.section-actions {
+    border-top: 1px solid #e9ecef;
+    padding-top: 15px;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.section-title {
+    margin: 0;
+    color: #333;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.modal-action-btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-action-btn.copy-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.modal-action-btn.copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.modal-action-btn.download-btn {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.modal-action-btn.download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+}
+
+.modal-action-btn.script-copy-btn {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+}
+
+.modal-action-btn.script-copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+}
+
+.modal-action-btn.listening-copy-btn {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    color: white;
+}
+
+.modal-action-btn.listening-copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+}
+
+/* 개별 이미지 다운로드 버튼 스타일 */
+.modal-action-btn.voice-download-btn {
+    background: linear-gradient(135deg, #9C27B0 0%, #673AB7 100%);
+    color: white;
+}
+
+.modal-action-btn.voice-download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(156, 39, 176, 0.4);
+}
+
+.modal-action-btn.script-download-btn {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+}
+
+.modal-action-btn.script-download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+}
+
+.modal-action-btn.listening-download-btn {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    color: white;
+}
+
+.modal-action-btn.listening-download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
 }
 
 .cheatsheet-date {
@@ -331,6 +461,39 @@
     margin-bottom: 15px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     border-left: 4px solid #667eea;
+    cursor: pointer; /* 클릭 가능함을 표시 */
+    transition: all 0.3s ease;
+    border: 2px solid transparent; /* 기본 테두리 */
+}
+
+.script-item:hover, .listening-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    border-color: rgba(102, 126, 234, 0.3); /* 호버 시 연한 테두리 */
+}
+
+/* 완료된 아이템 스타일 */
+.script-item.completed, .listening-item.completed {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); /* 연한 녹색 배경 */
+    border-left-color: #28a745; /* 왼쪽 테두리 녹색 */
+    border-color: #28a745; /* 전체 테두리 녹색 */
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2); /* 녹색 그림자 */
+}
+
+.script-item.completed:hover, .listening-item.completed:hover {
+    background: linear-gradient(135deg, #c3e6cb 0%, #b8e6c1 100%); /* 호버 시 조금 더 진한 녹색 */
+    border-color: #1e7e34; /* 더 진한 녹색 테두리 */
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+}
+
+/* 완료된 아이템의 텍스트 스타일 */
+.script-item.completed h4, .listening-item.completed h4 {
+    color: #155724; /* 진한 녹색 제목 */
+}
+
+.script-item.completed .script-content, 
+.listening-item.completed .listening-content {
+    color: #0f5132; /* 진한 녹색 내용 */
 }
 
 .script-item h4, .listening-item h4 {
@@ -409,21 +572,31 @@
 /* 반응형 디자인 */
 @media (max-width: 768px) {
     .cheatsheet-history-page {
-        padding: 15px 0;
+        padding: 0;
     }
     
     .content {
         padding: 25px;
-        margin: 0 15px;
+        margin: 0;
     }
     
     .history-header {
-        padding: 25px;
-        margin: 0 15px 30px;
+        padding: 50px 25px 25px 25px; /* 상단 패딩 증가하여 버튼과 겹침 방지 */
+        margin: 0;
     }
     
     .history-header h1 {
         font-size: 2.5em;
+        margin-right: 0; /* 모바일에서는 여백 제거 */
+    }
+    
+    .history-header p {
+        margin-right: 0; /* 모바일에서는 여백 제거 */
+    }
+    
+    .nav-buttons {
+        top: 15px;
+        right: 15px;
     }
     
     .history-item {
@@ -450,21 +623,54 @@
     .modal-body {
         padding: 20px;
     }
+    
+    .modal-actions {
+        padding: 15px 20px;
+    }
+    
+    .action-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .button-group {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+    
+    .modal-action-btn {
+        width: 100%;
+        max-width: 280px;
+        justify-content: center;
+    }
 }
 
 @media (max-width: 480px) {
     .nav-buttons {
-        flex-direction: column;
-        gap: 12px;
+        top: 12px;
+        right: 12px;
+        gap: 8px;
+    }
+    
+    .nav-btn {
+        padding: 8px 16px;
+        font-size: 0.8rem;
     }
     
     .history-header h1 {
         font-size: 2.2em;
+        margin-right: 0; /* 작은 화면에서는 여백 제거 */
+    }
+    
+    .history-header p {
+        margin-right: 0; /* 작은 화면에서는 여백 제거 */
     }
     
     .content {
         padding: 20px;
-        margin: 0 10px;
+        margin: 0;
     }
     
     .history-item {

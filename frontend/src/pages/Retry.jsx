@@ -50,11 +50,50 @@ const Retry = () => {
         
         // ngrok 환경인지 확인
         if (window.location.hostname.includes('ngrok-free.app') || window.location.hostname.includes('ngrok.io')) {
-            // ngrok 백엔드 URL 직접 사용
+            // ngrok static domain 사용
             return 'https://helpful-elf-carefully.ngrok-free.app';
         }
         
         return 'http://localhost:8000';
+    };
+
+    // ngrok 요청을 위한 헤더 설정
+    const getRequestHeaders = (includeContentType = true) => {
+        const headers = {};
+        
+        if (includeContentType) {
+            headers['Content-Type'] = 'application/json';
+        }
+        
+        // ngrok 환경에서 필요한 헤더 추가
+        const apiBaseUrl = getApiBaseUrl();
+        if (apiBaseUrl.includes('ngrok-free.app') || apiBaseUrl.includes('ngrok.io')) {
+            headers['ngrok-skip-browser-warning'] = 'true';
+            headers['User-Agent'] = 'Mozilla/5.0 (compatible; API-Client)';
+        }
+        
+        return headers;
+    };
+
+    // timeout이 포함된 fetch 함수
+    const fetchWithTimeout = async (url, options, timeout = 30000) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        try {
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            return response;
+        } catch (error) {
+            clearTimeout(timeoutId);
+            if (error.name === 'AbortError') {
+                throw new Error('timeout');
+            }
+            throw error;
+        }
     };
 
     const apiBaseUrl = getApiBaseUrl();
@@ -81,7 +120,12 @@ const Retry = () => {
         
         // 컴포넌트 언마운트 시 정리
         return () => {
-            // 정리 작업이 필요한 경우 여기에 추가
+            // 컴포넌트가 언마운트될 때 모든 음성 중지
+            stopCurrentAudio();
+            
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
         };
     }, [navigate]);
 
@@ -230,35 +274,195 @@ const Retry = () => {
                 currentAudioRef.current = null;
             }
 
-            // 새로운 오디오 생성
-            const audio = new Audio(`${apiBaseUrl}${audioUrl}`);
-            
-            audio.onloadstart = () => {
-                console.log('🎵 ElevenLabs 음성 로딩 시작');
+            // 오디오 URL 구성 및 ngrok 헤더 추가
+            const fullAudioUrl = `${apiBaseUrl}${audioUrl}`;
+            console.log('🔗 원본 오디오 URL:', audioUrl);
+            console.log('🔗 완전한 오디오 URL:', fullAudioUrl);
+            console.log('🔗 API Base URL:', apiBaseUrl);
+
+            // ngrok 환경에서 직접 fetch로 먼저 테스트
+            const testAudioAccess = async () => {
+                try {
+                    const headers = {};
+                    
+                    // ngrok 환경인지 확인하고 필요한 헤더 추가
+                    if (window.location.hostname.includes('ngrok-free.app') || window.location.hostname.includes('ngrok.io')) {
+                        headers['ngrok-skip-browser-warning'] = 'true';
+                        headers['User-Agent'] = 'Mozilla/5.0 (compatible; API-Client)';
+                        console.log('🔧 ngrok 환경 감지 - 헤더 추가');
+                    }
+                    
+                    console.log('🔍 오디오 파일 접근성 사전 테스트 시작...');
+                    const response = await fetch(fullAudioUrl, { 
+                        method: 'HEAD',  // HEAD 요청으로 헤더만 확인
+                        headers: headers
+                    });
+                    
+                    console.log('🔍 접근성 테스트 결과:');
+                    console.log('  - 상태 코드:', response.status);
+                    console.log('  - Content-Type:', response.headers.get('content-type'));
+                    console.log('  - Content-Length:', response.headers.get('content-length'));
+                    console.log('  - Access-Control-Allow-Origin:', response.headers.get('access-control-allow-origin'));
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    return true;
+                } catch (error) {
+                    console.error('❌ 사전 접근성 테스트 실패:', error);
+                    return false;
+                }
             };
-            
-            audio.oncanplay = () => {
-                console.log('🎵 ElevenLabs 음성 재생 준비 완료');
-            };
-            
-            audio.onplay = () => {
-                console.log('🎵 ElevenLabs 음성 재생 시작');
-                currentAudioRef.current = audio;
-            };
-            
-            audio.onended = () => {
-                console.log('🎵 ElevenLabs 음성 재생 완료');
-                currentAudioRef.current = null;
-                            };
-                            
-                            audio.onerror = (error) => {
-                                console.error('❌ ElevenLabs 음성 재생 오류:', error);
-                                // 오류 시 기본 TTS로 폴백
-                                speakMessage('음성 재생에 실패했습니다.');
-                            };
-            
-            // 음성 재생 시작
-            audio.play();
+
+            // 사전 테스트 실행
+            testAudioAccess().then(accessOk => {
+                console.log('🔍 사전 테스트 완료, 결과:', accessOk);
+                
+                if (!accessOk) {
+                    console.error('❌ 오디오 파일에 접근할 수 없습니다.');
+                    speakMessage('음성 파일에 접근할 수 없습니다.');
+                    if (onComplete) {
+                        onComplete();
+                    }
+                    return;
+                }
+
+                console.log('✅ 사전 테스트 통과 - 오디오 재생 시작');
+                
+                // 접근 가능하면 오디오 재생 시도
+                const audio = new Audio();
+                
+                // ngrok 환경에서는 특별한 설정 필요
+                if (window.location.hostname.includes('ngrok-free.app') || window.location.hostname.includes('ngrok.io')) {
+                    console.log('🔧 ngrok 환경 - 특별 설정 적용');
+                    // ngrok 환경에서는 preload를 none으로 설정
+                    audio.preload = 'none';
+                } else {
+                    audio.crossOrigin = "anonymous";
+                    audio.preload = 'auto';
+                }
+                
+                // 브라우저 지원 형식 확인
+                console.log('🔍 브라우저 오디오 지원 확인:');
+                console.log('  - MP3 지원:', audio.canPlayType('audio/mpeg'));
+                console.log('  - MP3 codecs 지원:', audio.canPlayType('audio/mpeg; codecs="mp3"'));
+                console.log('  - Audio/mp3 지원:', audio.canPlayType('audio/mp3'));
+                
+                audio.onloadstart = () => {
+                    console.log('🎵 ElevenLabs 음성 로딩 시작:', fullAudioUrl);
+                };
+                
+                audio.oncanplay = () => {
+                    console.log('🎵 ElevenLabs 음성 재생 준비 완료');
+                };
+                
+                audio.onplay = () => {
+                    console.log('🎵 ElevenLabs 음성 재생 시작');
+                    currentAudioRef.current = audio;
+                };
+                
+                audio.onended = () => {
+                    console.log('🎵 ElevenLabs 음성 재생 완료');
+                    currentAudioRef.current = null;
+                    if (onComplete) {
+                        onComplete();
+                    }
+                };
+                
+                audio.onerror = (error) => {
+                    console.error('❌ ElevenLabs 음성 재생 오류:', error);
+                    console.error('❌ 오디오 URL:', fullAudioUrl);
+                    console.error('❌ 오디오 네트워크 상태:', audio.networkState);
+                    console.error('❌ 오디오 준비 상태:', audio.readyState);
+                    console.error('❌ 오디오 에러 코드:', audio.error?.code);
+                    console.error('❌ 오디오 에러 메시지:', audio.error?.message);
+                    
+                    // 오류 시 기본 TTS로 폴백
+                    speakMessage('음성 재생에 실패했습니다.');
+                    
+                    // 오류 시에도 콜백 실행
+                    if (onComplete) {
+                        onComplete();
+                    }
+                };
+                
+                // ngrok 환경에서는 fetch로 파일을 먼저 다운로드 후 Blob URL 사용
+                if (window.location.hostname.includes('ngrok-free.app') || window.location.hostname.includes('ngrok.io')) {
+                    console.log('🔧 ngrok 환경 - Blob URL 방식 사용');
+                    
+                    fetch(fullAudioUrl, {
+                        headers: {
+                            'ngrok-skip-browser-warning': 'true',
+                            'User-Agent': 'Mozilla/5.0 (compatible; API-Client)'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        return response.blob();
+                    })
+                    .then(audioBlob => {
+                        console.log('✅ 오디오 Blob 다운로드 완료:', audioBlob.size, 'bytes');
+                        
+                        const blobUrl = URL.createObjectURL(audioBlob);
+                        console.log('🔗 Blob URL 생성:', blobUrl);
+                        
+                        audio.src = blobUrl;
+                        audio.load();
+                        
+                        // Blob URL 정리를 위한 이벤트 리스너 (기존 onended 덮어쓰기)
+                        audio.onended = () => {
+                            console.log('🎵 ElevenLabs 음성 재생 완료');
+                            currentAudioRef.current = null;
+                            URL.revokeObjectURL(blobUrl); // 메모리 정리
+                            if (onComplete) {
+                                onComplete();
+                            }
+                        };
+                        
+                        return audio.play();
+                    })
+                    .then(() => {
+                        console.log('✅ 오디오 재생 성공적으로 시작됨');
+                    })
+                    .catch(error => {
+                        console.error('❌ Blob 방식 오디오 재생 오류:', error);
+                        speakMessage('음성 재생에 실패했습니다.');
+                        if (onComplete) {
+                            onComplete();
+                        }
+                    });
+                    
+                } else {
+                    // 일반 환경에서는 기존 방식 사용
+                    console.log('🎵 오디오 소스 설정:', fullAudioUrl);
+                    audio.src = fullAudioUrl;
+                    
+                    console.log('🎵 오디오 로드 시작');
+                    audio.load(); // 명시적으로 로드
+                    
+                    // 음성 재생 시작
+                    console.log('🎵 오디오 재생 요청');
+                    audio.play()
+                        .then(() => {
+                            console.log('✅ 오디오 재생 성공적으로 시작됨');
+                        })
+                        .catch(playError => {
+                            console.error('❌ 오디오 재생 시작 오류:', playError);
+                            console.error('❌ 재생 오류 상세:', {
+                                name: playError.name,
+                                message: playError.message,
+                                code: playError.code
+                            });
+                            speakMessage('음성 재생에 실패했습니다.');
+                            if (onComplete) {
+                                onComplete();
+                            }
+                        });
+                }
+            });
             
         } catch (error) {
             console.error('❌ ElevenLabs 음성 재생 초기화 오류:', error);
@@ -341,11 +545,9 @@ const Retry = () => {
             });
             console.log('🆔 현재 세션 ID:', currentSessionId);
             
-            const response = await fetch(`${apiBaseUrl}/api/chat`, {
+            const response = await fetchWithTimeout(`${apiBaseUrl}/api/chat`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getRequestHeaders(),
                 body: JSON.stringify({
                     message: userMessage,
                     participantId: localStorage.getItem('participantId') || 'unknown',
@@ -479,13 +681,21 @@ const Retry = () => {
                 return;
             }
             
-            const apiBaseUrl = window.API_BASE_URL || 'http://localhost:8000';
+            const apiBaseUrl = getApiBaseUrl();
+            console.log('🔍 Retry 페이지 API URL:', apiBaseUrl);
             
             // 새로운 API로 피드백 데이터 가져오기 시도
             try {
-                const response = await fetch(`${apiBaseUrl}/api/get-feedback/${participantId}`);
+                const response = await fetchWithTimeout(`${apiBaseUrl}/api/get-feedback/${encodeURIComponent(participantId)}`, {
+                    method: 'GET',
+                    headers: getRequestHeaders(false)
+                });
+                
+                console.log('🔍 새로운 피드백 API 응답 상태:', response.status);
+                
                 if (response.ok) {
                     const evaluationData = await response.json();
+                    console.log('✅ 새로운 피드백 API 성공:', evaluationData);
                     if (evaluationData.status === 'success') {
                         createQuestsFromEvaluation(evaluationData.evaluation);
                         return;
@@ -497,11 +707,9 @@ const Retry = () => {
             
             // 기존 API로 시도
             try {
-                const response = await fetch(`${apiBaseUrl}/get-feedback`, {
+                const response = await fetchWithTimeout(`${apiBaseUrl}/get-feedback`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: getRequestHeaders(),
                     body: JSON.stringify({ userData })
                 });
 
@@ -712,6 +920,15 @@ const Retry = () => {
         // 퀘스트 체크 상태 설정
         setIsCheckingQuest(true);
         
+        // 대화창에 퀘스트 체크 시작 메시지 추가
+        const checkingMessage = {
+            content: '🔍 퀘스트 체크 중입니다...',
+            sender: 'system',
+            time: getCurrentTime(),
+            isTemp: true
+        };
+        setMessages(prev => [...prev, checkingMessage]);
+        
         try {
             // 최신 메시지를 포함한 대화 내용 구성
             const conversationHistory = [
@@ -743,11 +960,9 @@ const Retry = () => {
                 console.log('🆔 퀘스트 체크 세션 ID:', sessionId);
             
             // LLM 기반 퀘스트 체크 API 호출
-            const response = await fetch(`${apiBaseUrl}/api/check-quests`, {
+            const response = await fetchWithTimeout(`${apiBaseUrl}/api/check-quests`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getRequestHeaders(),
                 body: JSON.stringify({
                     conversation_history: conversationHistory,
                     quests: questsForCheck,
@@ -780,6 +995,9 @@ const Retry = () => {
         } finally {
             // 퀘스트 체크 상태 해제
             setIsCheckingQuest(false);
+            
+            // 임시 메시지 제거
+            setMessages(prev => prev.filter(msg => !msg.isTemp));
         }
     };
 
@@ -816,22 +1034,88 @@ const Retry = () => {
     const viewLogs = async () => {
         try {
             const userData = JSON.parse(localStorage.getItem('userData'));
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/get-logs`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ userData }),
+            const participantId = userData.participantId || localStorage.getItem('participantId');
+            
+            if (!participantId) {
+                alert('참가자 정보를 찾을 수 없습니다.');
+                return;
+            }
+            
+            const response = await fetchWithTimeout(`${apiBaseUrl}/api/logs?participant_id=${encodeURIComponent(participantId)}`, {
+                method: 'GET',
+                headers: getRequestHeaders(false)
             });
 
             if (response.ok) {
                 const logsData = await response.json();
-                setLogs(logsData.logs || []);
+                console.log('📋 Retry 로그 응답 데이터:', logsData);
+                console.log('📋 로그 배열:', logsData.logs);
+                
+                if (logsData.logs && logsData.logs.length > 0) {
+                    console.log('📋 첫 번째 로그 구조:', logsData.logs[0]);
+                    
+                    // 백엔드에서 받은 로그를 대화 세션별로 그룹화
+                    const sessionGroups = {};
+                    
+                    logsData.logs.forEach(log => {
+                        const sessionId = log.session_id || 'default';
+                        if (!sessionGroups[sessionId]) {
+                            sessionGroups[sessionId] = {
+                                timestamp: log.timestamp || new Date().toISOString(),
+                                messages: [],
+                                session_id: sessionId
+                            };
+                        }
+                        
+                        // 사용자 메시지와 봇 응답을 순서대로 추가
+                        if (log.user_message && log.user_message.trim()) {
+                            sessionGroups[sessionId].messages.push({
+                                sender: 'user',
+                                content: log.user_message.trim()
+                            });
+                        }
+                        
+                        if (log.bot_response && log.bot_response.trim()) {
+                            sessionGroups[sessionId].messages.push({
+                                sender: 'bot',
+                                content: log.bot_response.trim()
+                            });
+                        }
+                    });
+                    
+                    // 그룹화된 세션들을 배열로 변환하고 시간순 정렬
+                    const processedLogs = Object.values(sessionGroups)
+                        .filter(session => session.messages.length > 0)
+                        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    
+                    console.log('📋 처리된 로그 (세션별 그룹화):', processedLogs);
+                    console.log('📋 총 세션 수:', processedLogs.length);
+                    
+                    if (processedLogs.length > 0) {
+                        console.log('📋 첫 번째 세션 메시지 수:', processedLogs[0].messages.length);
+                    }
+                    
+                    setLogs(processedLogs);
+                } else {
+                    console.log('📋 로그가 없습니다.');
+                    setLogs([]);
+                }
+                
                 setShowLogsModal(true);
+            } else {
+                throw new Error(`HTTP ${response.status}`);
             }
         } catch (error) {
             console.error('로그 로드 오류:', error);
-            alert('로그를 불러오는데 실패했습니다.');
+            
+            let errorMessage = '로그를 불러오는데 실패했습니다.';
+            if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                errorMessage = 'ngrok 서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.';
+            } else if (error.message.includes('timeout')) {
+                errorMessage = '서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.';
+            }
+            
+            alert(errorMessage);
         }
     };
 
@@ -900,8 +1184,40 @@ const Retry = () => {
     };
 
     const handleCheatsheetGeneration = () => {
+        // 페이지 이동 전에 재생 중인 음성을 멈춤
+        stopCurrentAudio();
+        
+        // 음성 인식도 중지
+        if (isRecording) {
+            stopRecording();
+        }
+        
         // 치트시트 페이지로 이동만 (생성하지 않음)
         navigate('/cheatsheet');
+    };
+
+    const goToHome = () => {
+        // 페이지 이동 전에 재생 중인 음성을 멈춤
+        stopCurrentAudio();
+        
+        // 음성 인식도 중지
+        if (isRecording) {
+            stopRecording();
+        }
+        
+        navigate('/');
+    };
+
+    const goBack = () => {
+        // 페이지 이동 전에 재생 중인 음성을 멈춤
+        stopCurrentAudio();
+        
+        // 음성 인식도 중지
+        if (isRecording) {
+            stopRecording();
+        }
+        
+        navigate(-1);
     };
 
     const getQuestDescription = (key, grade) => {
@@ -927,10 +1243,10 @@ const Retry = () => {
         <div className="retry-container">
             <header className="retry-header">
                 <div className="nav-buttons">
-                    <button className="nav-btn home-btn" onClick={() => navigate('/')}>
+                    <button className="nav-btn home-btn" onClick={goToHome}>
                         🏠 홈
                     </button>
-                    <button className="nav-btn back-btn" onClick={() => navigate(-1)}>
+                    <button className="nav-btn back-btn" onClick={goBack}>
                         ← 이전
                     </button>
                 </div>
@@ -942,9 +1258,16 @@ const Retry = () => {
                 <div className="chat-section">
                     <div className="chat-messages" ref={chatMessagesRef}>
                         {messages.map((message, index) => (
-                            <div key={index} className={`message ${message.sender}-message`}>
+                            <div key={index} className={`message ${message.sender}-message ${message.isTemp ? 'temp-message' : ''}`}>
                                 <div className="message-content">
                                     {message.content}
+                                    {message.sender === 'system' && message.isTemp && (
+                                        <span className="loading-dots">
+                                            <span></span>
+                                            <span></span>
+                                            <span></span>
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="message-time">{message.time}</div>
                             </div>
@@ -1017,9 +1340,18 @@ const Retry = () => {
                                     immediateQuestCheck(lastUserMessage, lastBotResponse);
                                 }
                             }}
-                            disabled={!lastUserMessage || !lastBotResponse}
+                            disabled={!lastUserMessage || !lastBotResponse || isCheckingQuest}
                         >
-                            🔍 퀘스트 체크
+                            {isCheckingQuest ? (
+                                <>
+                                    <span className="loading-spinner"></span>
+                                    퀘스트 체크 중...
+                                </>
+                            ) : (
+                                <>
+                                    🔍 퀘스트 체크
+                                </>
+                            )}
                         </button>
                     </div>
 
@@ -1089,7 +1421,14 @@ const Retry = () => {
                                         날짜: {new Date().toLocaleDateString('ko-KR')}
                                     </div>
                                     <div className="participant-info">
-                                        참가자: {JSON.parse(localStorage.getItem('userData'))?.name || '알 수 없음'}
+                                        참가자: {(() => {
+                                            try {
+                                                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                                                return userData.participantId || localStorage.getItem('participantId') || '알 수 없음';
+                                            } catch (e) {
+                                                return '알 수 없음';
+                                            }
+                                        })()}
                                     </div>
                                 </div>
                             </div>
@@ -1103,20 +1442,33 @@ const Retry = () => {
                                     {logs.map((log, index) => (
                                         <div key={index} className="log-entry">
                                             <div className="log-header">
-                                                <span className="log-number">#{index + 1}</span>
-                                                <span className="log-timestamp">{log.timestamp}</span>
+                                                <span className="log-number">세션 #{index + 1}</span>
+                                                <span className="log-timestamp">
+                                                    {log.timestamp ? new Date(log.timestamp).toLocaleString('ko-KR') : '시간 정보 없음'}
+                                                </span>
+                                                {log.session_id && (
+                                                    <span className="session-id" title={log.session_id}>
+                                                        ID: {log.session_id.substring(0, 8)}...
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className="log-messages">
-                                                {log.messages?.map((msg, msgIndex) => (
-                                                    <div key={msgIndex} className={`log-${msg.sender}`}>
-                                                        <div className="message-label">
-                                                            {msg.sender === 'user' ? '환자' : '의사'}
+                                                {log.messages && log.messages.length > 0 ? (
+                                                    log.messages.map((msg, msgIndex) => (
+                                                        <div key={msgIndex} className={`log-${msg.sender}`}>
+                                                            <div className="message-label">
+                                                                {msg.sender === 'user' ? '👤 환자' : '👨‍⚕️ 의사'}
+                                                            </div>
+                                                            <div className="message-content">
+                                                                {msg.content}
+                                                            </div>
                                                         </div>
-                                                        <div className="message-content">
-                                                            {msg.content}
-                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="no-messages">
+                                                        메시지가 없습니다.
                                                     </div>
-                                                ))}
+                                                )}
                                             </div>
                                         </div>
                                     ))}

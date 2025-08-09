@@ -7,7 +7,7 @@
 .retry-container {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-    min-height: 100vh;
+    /* min-height 제거 - 완전한 자연 스크롤 */
     padding: 20px;
 }
 
@@ -62,8 +62,7 @@
     grid-template-columns: 2fr 1fr;
     background: white;
     border-radius: 0 0 20px 20px;
-    overflow: hidden;
-    min-height: calc(100vh - 140px);
+    /* overflow 및 min-height 제거하여 자연스러운 크기 */
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
@@ -78,15 +77,12 @@
 }
 
 .chat-messages {
-    flex: 1;
     padding: 20px;
-    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 15px;
     background: white;
-    min-height: 0;
-    max-height: calc(100vh - 300px);
+    /* flex, overflow, height 제한 제거하여 자연스러운 확장 */
 }
 
 .message {
@@ -124,6 +120,24 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.system-message {
+    align-self: center;
+    max-width: 80%;
+}
+
+.system-message .message-content {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1976d2;
+    border: 1px solid #2196f3;
+    text-align: center;
+    font-weight: 600;
+    animation: pulse 2s infinite;
+}
+
+.temp-message {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
 .message-time {
     font-size: 0.8rem;
     color: #999;
@@ -132,8 +146,40 @@
 }
 
 .loading-dots {
-    display: inline-block;
-    animation: pulse 1.5s infinite;
+    display: inline-flex;
+    gap: 3px;
+    margin-left: 8px;
+}
+
+.loading-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #1976d2;
+    animation: loadingDot 1.4s infinite ease-in-out both;
+}
+
+.loading-dots span:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.loading-dots span:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+.loading-dots span:nth-child(3) {
+    animation-delay: 0;
+}
+
+@keyframes loadingDot {
+    0%, 80%, 100% {
+        transform: scale(0);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 /* 입력 섹션 */
@@ -150,6 +196,8 @@
     bottom: 0;
     z-index: 10;
 }
+
+
 
 .input-area {
     margin-bottom: 10px;
@@ -331,13 +379,16 @@
 }
 
 .cheatsheet-btn {
-    background: #d4edda;
-    border-color: #c3e6cb;
-    color: #155724;
+    background: #f8f9fa; /* 흰색에 가까운 연한 배경 */
+    border-color: #667eea; /* 파란색 테두리 */
+    color: #f8f9fa;; /* 진한 파란색 글씨 */
+    font-weight: 600; /* 글씨 굵게 */
 }
 
 .cheatsheet-btn:hover {
-    background: #c3e6cb;
+    background: #e3f2fd; /* 연한 파란색 배경 */
+    border-color: #5c6bc0; /* 더 진한 파란색 테두리 */
+    color: #f8f9fa;; /* 더 진한 파란색 글씨 */
     transform: translateY(-1px);
 }
 
@@ -347,9 +398,7 @@
     padding: 20px;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    overflow-y: auto;
-    max-height: calc(100vh - 140px);
+    /* height, overflow, max-height 제거하여 자연스러운 확장 */
 }
 
 .quest-header {
@@ -396,6 +445,23 @@
     transform: none;
 }
 
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .quest-header p {
     color: #666;
     font-size: 0.9rem;
@@ -403,13 +469,11 @@
 }
 
 .quest-list {
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-bottom: 20px;
-    overflow-y: auto;
-    min-height: 0;
+    /* flex, overflow, min-height 제거하여 자연스러운 확장 */
 }
 
 .quest-item {
@@ -577,8 +641,7 @@
     border-radius: 20px;
     width: 90%;
     max-width: 800px;
-    max-height: 80vh;
-    overflow: hidden;
+    /* max-height 및 overflow 제거하여 자연스러운 확장 */
     display: flex;
     flex-direction: column;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
@@ -632,10 +695,9 @@
 }
 
 .logs-modal-body {
-    flex: 1;
-    overflow-y: auto;
     padding: 20px;
     background: #f8f9fa;
+    /* flex 및 overflow 제거하여 자연스러운 확장 */
 }
 
 .logs-container {
@@ -822,8 +884,7 @@
     
     .quest-section {
         order: -1;
-        max-height: 300px;
-        overflow-y: auto;
+        /* max-height 및 overflow 제거하여 자연스러운 확장 */
     }
 }
 

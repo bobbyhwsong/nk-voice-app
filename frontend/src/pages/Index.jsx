@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Index.css';
 
@@ -10,6 +10,90 @@ const Index = () => {
     consent: false
   });
   const [error, setError] = useState('');
+  const [connectionStatus, setConnectionStatus] = useState('');
+
+  // 연결 상태 확인 함수
+  const checkConnection = async () => {
+    try {
+      // API 기본 URL 동적 설정
+      const getApiBaseUrl = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const backendUrl = urlParams.get('backend');
+        if (backendUrl) {
+          return backendUrl;
+        }
+        
+        // ngrok 환경인지 확인
+        if (window.location.hostname.includes('ngrok-free.app') || window.location.hostname.includes('ngrok.io')) {
+          return 'https://helpful-elf-carefully.ngrok-free.app';
+        }
+        
+        return 'http://localhost:8000';
+      };
+
+      // ngrok 요청을 위한 헤더 설정
+      const getRequestHeaders = () => {
+        const headers = {};
+        
+        // ngrok 환경에서 필요한 헤더 추가
+        const apiBaseUrl = getApiBaseUrl();
+        if (apiBaseUrl.includes('ngrok-free.app') || apiBaseUrl.includes('ngrok.io')) {
+          headers['ngrok-skip-browser-warning'] = 'true';
+        }
+        
+        return headers;
+      };
+
+      // timeout이 포함된 fetch 함수
+      const fetchWithTimeout = async (url, options, timeout = 10000) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        try {
+          const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          return response;
+        } catch (error) {
+          clearTimeout(timeoutId);
+          if (error.name === 'AbortError') {
+            throw new Error('timeout');
+          }
+          throw error;
+        }
+      };
+
+      const apiBaseUrl = getApiBaseUrl();
+      setConnectionStatus('연결 확인 중...');
+      
+      const response = await fetchWithTimeout(`${apiBaseUrl}/health`, {
+        method: 'GET',
+        headers: getRequestHeaders()
+      });
+      
+      if (response.ok) {
+        setConnectionStatus('✅ 서버 연결 정상');
+      } else {
+        setConnectionStatus('⚠️ 서버 응답 오류');
+      }
+    } catch (error) {
+      console.error('Connection check error:', error);
+      if (error.message === 'timeout') {
+        setConnectionStatus('❌ 연결 시간 초과');
+      } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        setConnectionStatus('❌ 서버에 연결할 수 없음');
+      } else {
+        setConnectionStatus('❌ 연결 오류');
+      }
+    }
+  };
+
+  // 페이지 로드 시 연결 상태 확인
+  useEffect(() => {
+    checkConnection();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -51,6 +135,43 @@ const Index = () => {
         
         return 'http://localhost:8000';
       };
+
+      // ngrok 요청을 위한 헤더 설정
+      const getRequestHeaders = () => {
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        
+        // ngrok 환경에서 필요한 헤더 추가
+        const apiBaseUrl = getApiBaseUrl();
+        if (apiBaseUrl.includes('ngrok-free.app') || apiBaseUrl.includes('ngrok.io')) {
+          headers['ngrok-skip-browser-warning'] = 'true';
+          headers['User-Agent'] = 'Mozilla/5.0 (compatible; API-Client)';
+        }
+        
+        return headers;
+      };
+
+      // timeout이 포함된 fetch 함수
+      const fetchWithTimeout = async (url, options, timeout = 30000) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        try {
+          const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          return response;
+        } catch (error) {
+          clearTimeout(timeoutId);
+          if (error.name === 'AbortError') {
+            throw new Error('timeout');
+          }
+          throw error;
+        }
+      };
       
       const apiBaseUrl = getApiBaseUrl();
       
@@ -58,11 +179,9 @@ const Index = () => {
       console.log('🔍 현재 window.location:', window.location.href);
       console.log('🔍 전송할 데이터:', userData);
       
-      const response = await fetch(`${apiBaseUrl}/api/save-user-data`, {
+      const response = await fetchWithTimeout(`${apiBaseUrl}/api/save-user-data`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getRequestHeaders(),
         body: JSON.stringify(userData)
       });
 
@@ -78,7 +197,19 @@ const Index = () => {
       }
     } catch (error) {
       console.error('Error saving user data:', error);
-      setError('서버 연결에 실패했습니다. 다시 시도해주세요.');
+      
+      // 네트워크 오류 유형에 따른 상세한 에러 메시지
+      let errorMessage = '서버 연결에 실패했습니다.';
+      
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        errorMessage = 'ngrok 서버에 연결할 수 없습니다. URL을 확인하거나 잠시 후 다시 시도해주세요.';
+      } else if (error.message.includes('CORS')) {
+        errorMessage = 'CORS 오류가 발생했습니다. 서버 설정을 확인해주세요.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = '서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.';
+      }
+      
+      setError(errorMessage + ' 다시 시도해주세요.');
     }
   };
 
@@ -107,10 +238,48 @@ const Index = () => {
         return 'http://localhost:8000';
       };
 
+      // ngrok 요청을 위한 헤더 설정
+      const getRequestHeaders = () => {
+        const headers = {};
+        
+        // ngrok 환경에서 필요한 헤더 추가
+        const apiBaseUrl = getApiBaseUrl();
+        if (apiBaseUrl.includes('ngrok-free.app') || apiBaseUrl.includes('ngrok.io')) {
+          headers['ngrok-skip-browser-warning'] = 'true';
+          headers['User-Agent'] = 'Mozilla/5.0 (compatible; API-Client)';
+        }
+        
+        return headers;
+      };
+
+      // timeout이 포함된 fetch 함수
+      const fetchWithTimeout = async (url, options, timeout = 30000) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        try {
+          const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          return response;
+        } catch (error) {
+          clearTimeout(timeoutId);
+          if (error.name === 'AbortError') {
+            throw new Error('timeout');
+          }
+          throw error;
+        }
+      };
+
       const apiBaseUrl = getApiBaseUrl();
       
       // 과거 치트시트 존재 여부 확인
-      const response = await fetch(`${apiBaseUrl}/api/get-cheatsheet-history/${encodeURIComponent(formData.participantId)}`);
+      const response = await fetchWithTimeout(`${apiBaseUrl}/api/get-cheatsheet-history/${encodeURIComponent(formData.participantId)}`, {
+        method: 'GET',
+        headers: getRequestHeaders()
+      });
       const data = await response.json();
 
       if (data.status === 'success' && data.cheatsheets && data.cheatsheets.length > 0) {
@@ -123,7 +292,19 @@ const Index = () => {
       }
     } catch (error) {
       console.error('Error checking cheatsheet history:', error);
-      setError('서버 연결에 실패했습니다. 다시 시도해주세요.');
+      
+      // 네트워크 오류 유형에 따른 상세한 에러 메시지
+      let errorMessage = '서버 연결에 실패했습니다.';
+      
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        errorMessage = 'ngrok 서버에 연결할 수 없습니다. URL을 확인하거나 잠시 후 다시 시도해주세요.';
+      } else if (error.message.includes('CORS')) {
+        errorMessage = 'CORS 오류가 발생했습니다. 서버 설정을 확인해주세요.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = '서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.';
+      }
+      
+      setError(errorMessage + ' 다시 시도해주세요.');
     }
   };
 
@@ -132,6 +313,37 @@ const Index = () => {
       <header>
         <h1>🏥 의료 진료 연습 시스템</h1>
         <p>AI 의사와의 진료 대화 연습</p>
+        {connectionStatus && (
+          <div style={{ 
+            fontSize: '0.9em', 
+            padding: '5px 10px', 
+            borderRadius: '5px',
+            backgroundColor: connectionStatus.includes('✅') ? '#d4edda' : 
+                           connectionStatus.includes('⚠️') ? '#fff3cd' : '#f8d7da',
+            border: `1px solid ${connectionStatus.includes('✅') ? '#c3e6cb' : 
+                                connectionStatus.includes('⚠️') ? '#ffeaa7' : '#f5c6cb'}`,
+            color: connectionStatus.includes('✅') ? '#155724' : 
+                   connectionStatus.includes('⚠️') ? '#856404' : '#721c24'
+          }}>
+            {connectionStatus}
+            {!connectionStatus.includes('✅') && (
+              <button 
+                onClick={checkConnection}
+                style={{
+                  marginLeft: '10px',
+                  padding: '2px 8px',
+                  fontSize: '0.8em',
+                  backgroundColor: 'transparent',
+                  border: '1px solid currentColor',
+                  borderRadius: '3px',
+                  cursor: 'pointer'
+                }}
+              >
+                🔄 재시도
+              </button>
+            )}
+          </div>
+        )}
       </header>
       
       <div className="content">

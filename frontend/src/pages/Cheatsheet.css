@@ -869,11 +869,15 @@
 }
 
 .generate-cheatsheet-btn {
-    background: linear-gradient(45deg, #667eea, #764ba2);
-    color: white;
+    background: linear-gradient(45deg, #e3f2fd, #f3e5f5); /* 훨씬 연한 배경 */
+    color: #1976d2; /* 진한 파란색 글씨 */
+    border: 2px solid #667eea; /* 테두리 추가로 버튼 구분 */
 }
 
 .generate-cheatsheet-btn:hover {
+    background: linear-gradient(45deg, #bbdefb, #e1bee7); /* 호버 시 조금 더 진한 배경 */
+    color: #0d47a1; /* 더 진한 글씨 */
+    border-color: #5c6bc0; /* 테두리도 조금 더 진하게 */
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
@@ -939,11 +943,15 @@
 }
 
 .popup-action-btn.generate-btn {
-    background: linear-gradient(45deg, #667eea, #764ba2);
-    color: white;
+    background: linear-gradient(45deg, #e3f2fd, #f3e5f5); /* 연한 배경 */
+    color: #1976d2; /* 진한 파란색 글씨 */
+    border: 2px solid #667eea; /* 테두리 추가 */
 }
 
 .popup-action-btn.generate-btn:hover {
+    background: linear-gradient(45deg, #bbdefb, #e1bee7); /* 호버 시 조금 더 진한 배경 */
+    color: #0d47a1; /* 더 진한 글씨 */
+    border-color: #5c6bc0; /* 테두리도 조금 더 진하게 */
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
@@ -1000,11 +1008,36 @@
     margin-bottom: 15px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    cursor: pointer; /* 클릭 가능함을 표시 */
+    border: 2px solid transparent; /* 기본 테두리 */
 }
 
 .script-item:hover, .listening-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    border-color: rgba(102, 126, 234, 0.3); /* 호버 시 연한 테두리 */
+}
+
+/* 완료된 아이템 스타일 */
+.script-item.completed, .listening-item.completed {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); /* 연한 녹색 배경 */
+    border-color: #28a745; /* 녹색 테두리 */
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2); /* 녹색 그림자 */
+}
+
+.script-item.completed:hover, .listening-item.completed:hover {
+    background: linear-gradient(135deg, #c3e6cb 0%, #b8e6c1 100%); /* 호버 시 조금 더 진한 녹색 */
+    border-color: #1e7e34; /* 더 진한 녹색 테두리 */
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+}
+
+/* 완료된 아이템의 텍스트 스타일 */
+.script-item.completed h4, .listening-item.completed h4 {
+    color: #155724; /* 진한 녹색 제목 */
+}
+
+.script-item.completed p, .listening-item.completed p {
+    color: #0f5132; /* 진한 녹색 내용 */
 }
 
 .script-item h4, .listening-item h4 {
@@ -1043,6 +1076,16 @@
     word-wrap: break-word;
 }
 
+/* 섹션 제목과 아이템들 사이 간격 */
+.left-section h3, .right-section h3 {
+    margin-bottom: 25px; /* 제목과 아이템 사이 간격 증가 */
+    color: #2c3e50;
+    font-size: 1.2em;
+    font-weight: 600;
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+}
+
 .left-section {
     border-right: 3px solid rgba(102, 126, 234, 0.3);
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
@@ -1055,9 +1098,9 @@
 /* 액션 버튼들을 한 줄로 정렬 */
 .action-buttons {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: center;
     gap: 15px;
-    flex-wrap: wrap;
     margin: 30px 20px 20px;
     padding: 25px;
     background: rgba(255, 255, 255, 0.95);
@@ -1066,8 +1109,33 @@
     backdrop-filter: blur(10px);
 }
 
+.main-buttons {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.copy-buttons-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.image-buttons-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.finish-button-container {
+    margin-left: 20px;
+}
+
 .action-btn {
-    padding: 12px 20px;
+    padding: 14px 18px;
     border: none;
     border-radius: 25px;
     font-size: 0.9em;
@@ -1077,6 +1145,10 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     min-width: 140px;
     white-space: nowrap;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .copy-btn {
@@ -1146,13 +1218,87 @@
     .action-buttons {
         flex-direction: column;
         align-items: center;
-        gap: 10px;
+        gap: 15px;
         margin: 20px 10px;
         padding: 20px;
+    }
+    
+    .main-buttons {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        gap: 30px;
+    }
+    
+    .copy-buttons-group,
+    .image-buttons-group {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        gap: 10px;
+    }
+    
+    .finish-button-container {
+        margin-left: 0;
+        margin-top: 10px;
+        width: 100%;
+        display: flex;
+        justify-content: center;
     }
     
     .action-btn {
         width: 100%;
         max-width: 280px;
+        height: 48px;
     }
 }
+
+/* 기존 액션 버튼 레이아웃 스타일 제거됨 - 새로운 레이아웃 사용 */
+
+/* 개별 섹션 복사 버튼 스타일 */
+.action-btn.script-copy-btn {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    border: none;
+}
+
+.action-btn.script-copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+}
+
+.action-btn.listening-copy-btn {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    color: white;
+    border: none;
+}
+
+.action-btn.listening-copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+}
+
+/* 개별 이미지 다운로드 버튼 스타일 */
+.action-btn.script-download-btn {
+    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+    color: white;
+    border: none;
+}
+
+.action-btn.script-download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+}
+
+.action-btn.listening-download-btn {
+    background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+    color: white;
+    border: none;
+}
+
+.action-btn.listening-download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+}
+
+/* 기존 모바일 레이아웃 스타일 제거됨 - 위의 반응형 스타일로 충분 */
