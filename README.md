@@ -2,6 +2,17 @@
 
 환자들을 위한 진료 상황 대비 음성 대화 연습 시스템입니다. FastAPI 백엔드와 React 프론트엔드로 구성되어 있으며, ngrok을 통해 외부 접속이 가능합니다.
 
+## ⚠️ 중요: Ngrok Static Domain 설정 필요
+
+**이 프로젝트를 사용하기 전에 반드시 다음 설정이 필요합니다:**
+
+1. **Ngrok 계정 생성**: [https://ngrok.com/](https://ngrok.com/)에서 회원가입
+2. **Static Domain 생성**: Ngrok Dashboard에서 static domain 생성 (유료 기능)
+3. **환경설정**: `frontend/.env` 파일에 static domain 설정 (백엔드용)
+4. **코드 수정**: 하드코딩된 URL들을 환경변수로 교체
+
+**🔗 자세한 설정 방법은 아래 "📋 초보자를 위한 상세 설정 가이드" 섹션을 참조하세요.**
+
 ## 🚀 빠른 시작 (이미 설정된 경우)
 
 만약 이미 모든 설정이 완료되었다면, 다음 3개 스크립트를 **서로 다른 터미널**에서 순서대로 실행하세요:
@@ -143,11 +154,78 @@ touch .env
 # 3. .env 파일에 API 키 추가 (VS Code에서 편집)
 ```
 
-`.env` 파일 내용:
+**Backend `.env` 파일 내용:**
 ```env
 OPENAI_API_KEY=sk-your-openai-api-key-here
 ELEVENLABS_API_KEY=your-elevenlabs-api-key-here
 ```
+
+**Frontend 환경설정 (중요!):**
+프로젝트 루트에 `frontend/.env` 파일을 생성하고 다음 내용을 추가하세요:
+
+```bash
+# 1. frontend 폴더로 이동
+cd ../frontend
+
+# 2. .env 파일 생성
+touch .env
+
+# 3. .env 파일에 Ngrok static domain 추가
+```
+
+**Frontend `.env` 파일 내용:**
+```env
+# Ngrok Static Domain 설정 (백엔드용)
+# Ngrok 사이트(https://ngrok.com/)에서 확인한 static domain을 입력하세요
+VITE_NGROK_STATIC_DOMAIN=your-static-domain.ngrok-free.app
+
+# 백엔드 API URL (Ngrok static domain 사용)
+VITE_BACKEND_API_URL=https://your-static-domain.ngrok-free.app
+
+# 프론트엔드 URL (동적 URL 사용 - ngrok start 명령어로 생성됨)
+# VITE_FRONTEND_URL은 설정하지 않음 (자동 생성)
+```
+
+**⚠️ 주의사항:**
+- `your-static-domain.ngrok-free.app` 부분을 실제 Ngrok에서 생성한 static domain으로 교체하세요
+- 예시: `my-voice-app.ngrok-free.app` → `VITE_NGROK_STATIC_DOMAIN=my-voice-app.ngrok-free.app`
+- **백엔드만 static domain을 사용하고, 프론트엔드는 동적 URL을 사용합니다**
+
+**🔧 하드코딩된 URL 교체 (중요!):**
+프로젝트에 하드코딩된 Ngrok URL들을 환경변수로 교체해야 합니다:
+
+1. **환경변수 파일 생성 후:**
+   ```bash
+   # frontend 폴더에 .env 파일 생성
+   cd frontend
+   touch .env
+   ```
+
+2. **환경변수 설정:**
+   ```env
+   VITE_NGROK_STATIC_DOMAIN=your-actual-domain.ngrok-free.app
+   VITE_BACKEND_API_URL=https://your-actual-domain.ngrok-free.app
+   ```
+
+3. **코드 수정:**
+   다음 파일들에서 `https://helpful-elf-carefully.ngrok-free.app`를 환경변수로 교체:
+   - `frontend/src/pages/Chat.jsx`
+   - `frontend/src/pages/Index.jsx`
+   - `frontend/src/pages/Cheatsheet.jsx`
+   - `frontend/src/pages/Feedback.jsx`
+   - `frontend/src/pages/Retry.jsx`
+   - `frontend/src/pages/CheatsheetHistory.jsx`
+
+   **교체 방법:**
+   ```javascript
+   // 기존 (하드코딩)
+   return 'https://helpful-elf-carefully.ngrok-free.app';
+   
+   // 변경 후 (환경변수 사용)
+   return import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:8000';
+   ```
+
+**📝 참고:** 백엔드만 static domain을 사용하고, 프론트엔드는 `ngrok start` 명령어로 생성되는 동적 URL을 사용합니다.
 
 ### 9단계: Ngrok 설정
 
@@ -155,6 +233,14 @@ ELEVENLABS_API_KEY=your-elevenlabs-api-key-here
 1. [Ngrok 웹사이트](https://ngrok.com/)에서 회원가입
 2. 이메일 인증 완료
 3. 로그인 후 `Your Authtoken` 메뉴 클릭
+
+#### Ngrok Static Domain 설정 (중요!):
+1. [Ngrok Dashboard](https://dashboard.ngrok.com/)에서 로그인
+2. `Cloud Edge` → `Domains` 메뉴 클릭
+3. `New Domain` 버튼 클릭하여 static domain 생성
+4. 원하는 subdomain 입력 (예: `my-voice-app`)
+5. 생성된 static domain 확인 (예: `my-voice-app.ngrok-free.app`)
+6. **이 static domain을 아래 환경설정에 입력해야 합니다**
 
 #### Ngrok 설치 및 인증:
 ```bash
@@ -179,7 +265,40 @@ ngrok version
 2. 압축 해제 후 `ngrok.exe`를 원하는 폴더에 저장
 3. 해당 폴더를 시스템 PATH에 추가하거나, 프로젝트 루트에 복사
 
-### 10단계: 실행 권한 설정
+### 10단계: Ngrok 설정 파일 생성
+
+**Ngrok 설정 파일 생성:**
+```bash
+# 1. 프로젝트 루트로 이동
+cd ..
+
+# 2. ngrok 설정 파일 생성
+mkdir -p ~/.ngrok2
+touch ~/.ngrok2/ngrok.yml
+```
+
+**`~/.ngrok2/ngrok.yml` 파일 내용:**
+```yaml
+version: "2"
+authtoken: YOUR_AUTHTOKEN_HERE
+tunnels:
+  backend:
+    addr: 8000
+    proto: http
+    hostname: your-static-domain.ngrok-free.app
+  frontend:
+    addr: 5173
+    proto: http
+    hostname: your-static-domain.ngrok-free.app
+```
+
+**⚠️ 설정 변경사항:**
+- `YOUR_AUTHTOKEN_HERE`: Ngrok 웹사이트에서 복사한 인증 토큰으로 교체
+- `your-static-domain.ngrok-free.app`: 실제 생성한 static domain으로 교체 (백엔드용)
+
+**📝 참고:** 프론트엔드는 동적 URL을 사용하고, 백엔드만 static domain을 사용합니다.
+
+### 11단계: 실행 권한 설정
 
 ```bash
 # 1. 프로젝트 루트로 이동
@@ -216,6 +335,26 @@ chmod +x start-ngrok.sh
 
 ## 🔧 문제 해결
 
+### Ngrok Static Domain 관련 문제:
+
+1. **"ngrok: command not found"**
+   - Ngrok 설치 확인: `ngrok version`
+   - PATH 설정 확인 또는 재설치
+
+2. **"Static domain not found"**
+   - [Ngrok Dashboard](https://dashboard.ngrok.com/)에서 static domain이 생성되었는지 확인
+   - `~/.ngrok2/ngrok.yml` 파일의 hostname이 올바른지 확인
+   - `frontend/.env` 파일의 static domain이 올바른지 확인
+
+3. **"Invalid hostname" 오류**
+   - static domain 형식 확인: `your-app.ngrok-free.app`
+   - Ngrok 계정이 유료 플랜인지 확인 (static domain은 유료 기능)
+
+4. **환경변수 인식 안됨**
+   - `frontend/.env` 파일이 올바른 위치에 있는지 확인
+   - 프론트엔드 서버 재시작
+   - 환경변수 이름이 `VITE_`로 시작하는지 확인
+
 ### 일반적인 오류들:
 
 1. **"conda: command not found"**
@@ -246,8 +385,15 @@ chmod +x start-ngrok.sh
 ## 📱 접속 방법
 
 - **로컬 접속**: `http://localhost:5173`
-- **외부 접속**: ngrok이 제공하는 URL 사용
-- **API 문서**: `http://localhost:8000/docs`
+- **외부 접속**: Ngrok static domain 사용 (예: `https://my-voice-app.ngrok-free.app`)
+- **API 문서**: `http://localhost:8000/docs` (로컬) 또는 `https://my-voice-app.ngrok-free.app/docs` (외부)
+
+**🔗 Ngrok Static Domain 확인 방법:**
+1. [Ngrok Dashboard](https://dashboard.ngrok.com/) 로그인
+2. `Cloud Edge` → `Domains` 메뉴에서 생성된 static domain 확인 (백엔드용)
+3. 또는 터미널에서 `ngrok status` 명령어로 현재 터널 상태 확인
+
+**📝 참고:** 백엔드만 static domain을 사용하고, 프론트엔드는 동적 URL을 사용합니다.
 
 ## 🎉 축하합니다!
 
