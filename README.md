@@ -47,18 +47,6 @@
    conda --version
    ```
 
-#### Linux 사용자:
-```bash
-# Anaconda 설치 스크립트 다운로드
-wget https://repo.anaconda.com/archive/Anaconda3-2023.09-0-Linux-x86_64.sh
-
-# 설치 스크립트 실행
-bash Anaconda3-2023.09-0-Linux-x86_64.sh
-
-# 환경 변수 설정 (설치 완료 후)
-source ~/.bashrc
-```
-
 ### 3단계: 프로젝트 다운로드 및 설정
 
 1. **VS Code에서 프로젝트 열기**
@@ -76,7 +64,7 @@ VS Code 터미널에서 다음 명령어들을 순서대로 실행:
 
 ```bash
 # 1. Conda 가상환경 생성
-conda create -n nk_voice python=3.8
+conda create -n nk_voice python=3.11
 
 # 2. 가상환경 활성화
 conda activate nk_voice
@@ -224,7 +212,7 @@ chmod +x start-ngrok.sh
 ```bash
 ./start-ngrok.sh
 ```
-- 성공 시: 외부 접속 가능한 URL 제공 (예: `https://abc123.ngrok.io`)
+- 성공 시: 외부 접속 가능한 URL 제공 (예: `https://abc123.ngrok-free.app`)
 
 ## 🔧 문제 해결
 
@@ -267,7 +255,7 @@ chmod +x start-ngrok.sh
 
 ## 📚 추가 정보
 
-- **시스템 요구사항**: Python 3.8+, Node.js 16.0+, pnpm
+- **시스템 요구사항**: Python 3.11+, Node.js 16.0+, pnpm
 - **지원 브라우저**: Chrome, Firefox, Safari, Edge (최신 버전)
 - **마이크 권한**: 브라우저에서 마이크 접근 권한 허용 필요
 
