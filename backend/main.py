@@ -686,15 +686,17 @@ async def evaluate_conversation(request: EvaluationRequest):
 8. side_effects: 약의 부작용과 주의사항
 9. followup_plan: 다음 진료 계획과 재방문 시기
 10. emergency_plan: 증상 악화 시 언제 다시 와야 하는지
-
-각 항목에 대해 상, 중, 하 등급을 매기고, 구체적인 이유를 설명해주세요.
-환자 입장에서 꼭 말해야할 것을 말했는지, 의사한테 꼭 들어야할 것을 들었는지를 평가해주세요.
-항목 평가가 중,하인 경우에만 개선 제안을 제공해주세요.
 """
         
         # LLM을 사용한 평가 프롬프트
         evaluation_prompt = f"""
-다음은 환자용 의료 진료 연습의 대화 내용입니다. 평가 기준에 따라 각 항목을 평가해주세요.
+다음은 환자용 의료 진료 연습의 대화 내용입니다.
+평가 기준에 따라 환자가 얼마나 잘 말하고, 잘 들었는지 각 항목을 평가해주세요.
+
+각 항목에 대해 상, 중, 하 등급을 매기고, 구체적인 이유를 설명해주세요.
+환자 입장에서 꼭 말해야할 것을 말했는지, 의사한테 꼭 들어야할 것을 들었는지를 평가해주세요.
+
+개선 팁은 환자 입장에서 적어주세요
 
 대화 내용:
 {conversation_text}
@@ -702,6 +704,7 @@ async def evaluate_conversation(request: EvaluationRequest):
 평가 기준:
 {evaluation_criteria}
 
+항목 평가가 중,하인 경우에만 개선 제안을 제공해주세요.
 다음 JSON 형식으로 응답해주세요:
 {{
     "grades": {{
@@ -1026,13 +1029,28 @@ async def retry_chat(request: RetryChatRequest):
         # 시스템 프롬프트 설정 (재연습용)
         system_prompt = """당신은 50대 남성의 경험 많은 내과 의사입니다. 환자와의 대화에서 다음 사항을 지켜주세요:
 
-1. 무심한 듯한 말투로 대화하세요.
-2. 환자의 증상을 파악하기 위한 질문을 하세요.
-3. 환자에게 향후 조치에 대해 간단하게만 알려주세요.
-4. 의학용어는 쉽게 설명하되, 간결하게 하세요.
-5. 길게 말하지 말고, 존대말로 하세요.
+1. 무심한 말투로 대화하세요.
+2. 의학용어는 쉽게 설명하되, 간결하게 하세요.
+3. 환자의 메시지에 대해 간결하게, 적절한 응답을 해주세요.
+4. 길게 말하지 말고, 존대말로 하세요.
 
-환자의 메시지에 대해 의사로서 적절한 응답을 해주세요. """
+환자는 다음의 사항 중에 하나 또는 여러 개를 물어볼거야.
+환자의 메시지에 따라 적절한 응답을 해주세요.
+
+환자 입장에서 꼭 말해야 하는 것:
+1. symptom_location: 어디가 아픈지 구체적인 위치
+2. symptom_timing: 언제부터 아픈지 시작 시기  
+3. symptom_severity: 증상이 얼마나 심한지 강도
+4. current_medication: 현재 복용 중인 약물
+5. allergy_info: 알레르기 여부
+
+진료과정 중에 의사한테 꼭 들어야 하는 것:
+6. diagnosis_info: 의사의 진단명과 진단 근거
+7. prescription_info: 처방약의 이름과 복용 방법
+8. side_effects: 약의 부작용과 주의사항
+9. followup_plan: 다음 진료 계획과 재방문 시기
+10. emergency_plan: 증상 악화 시 언제 다시 와야 하는지
+"""
         
         # 사용자 메시지에 컨텍스트 추가
         user_message = f"환자: {request.message}"
@@ -1881,7 +1899,9 @@ async def generate_cheatsheet(request: CheatsheetRequest):
 9. followup_plan: 다음 진료 계획과 재방문 시기
 10. emergency_plan: 증상 악화 시 언제 다시 와야 하는지
 
-각 항목은 구체적이고 실용적이어야 하며, 북한이탈주민의 특성을 고려해야 합니다.
+각 항목은 구체적이고 실용적이어야 해요.
+만약, 대화 내용에서 확인이 안 되는 내용의 경우에는, 말해야하는 형식을 만들어.
+그리고, 빈칸을 비워두고 환자가 빈칸을 채워서 말할 수 있게 해주세요.
 
 다음 JSON 형식으로 응답해주세요:
 {{
@@ -1895,7 +1915,7 @@ async def generate_cheatsheet(request: CheatsheetRequest):
         "listening": [
             {{
                 "title": "diagnosis_info",
-                "content": "의사가 말할 내용"
+                "content": "의사에게 물어보거나 들을 수 있는 내용"
             }}
         ]
     }}
