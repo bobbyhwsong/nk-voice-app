@@ -292,8 +292,9 @@ async def chat_with_doctor(request: ChatRequest):
         print(f"📝 최근 대화: {request.conversationHistory[-3:] if request.conversationHistory else '없음'}")
         
         # ChatGPT API 호출
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+        client = openai.OpenAI(api_key=openai_api_key)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
             messages=messages_for_api,
             max_tokens=500,
             temperature=0.7
@@ -547,7 +548,7 @@ async def analyze_voice(request: VoiceAnalysisRequest):
             # 최신 버전 (v1.0+)
             client = openai.OpenAI(api_key=openai_api_key)
             response = client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "당신은 대화 분석 전문가입니다. 환자의 대화 스타일을 분석하고, 긍정적인 면을 구체적으로 칭찬해주세요."},
                     {"role": "user", "content": analysis_prompt}
@@ -559,10 +560,10 @@ async def analyze_voice(request: VoiceAnalysisRequest):
             # 구버전 (v0.x)
             openai.api_key = openai_api_key
             response = openai.ChatCompletion.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "당신은 의료 진료 연습을 위한 대화 분석 전문가입니다. 환자의 대화 스타일을 객관적이고 건설적으로 분석해주세요."},
-                    {"role": "user", "content": analysis_prompt}
+                    {"role": "user", "content": "analysis_prompt"}
                 ],
                 temperature=0.7,
                 max_tokens=1000
@@ -751,7 +752,7 @@ async def evaluate_conversation(request: EvaluationRequest):
             # 최신 버전 (v1.0+)
             client = openai.OpenAI(api_key=openai_api_key)
             response = client.chat.completions.create(
-                model="gpt-4o",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "당신은 환자용 의료 진료 연습을 위한 평가 전문가입니다. 객관적이고 건설적인 평가를 제공해주세요."},
                     {"role": "user", "content": evaluation_prompt}
@@ -763,10 +764,10 @@ async def evaluate_conversation(request: EvaluationRequest):
             # 구버전 (v0.x)
             openai.api_key = openai_api_key
             response = openai.ChatCompletion.create(
-                model="gpt-4o",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "당신은 환자용 의료 진료 연습을 위한 평가 전문가입니다. 객관적이고 건설적인 평가를 제공해주세요."},
-                    {"role": "user", "content": evaluation_prompt}
+                    {"role": "user", "content": "analysis_prompt"}
                 ],
                 temperature=0.7,
                 max_tokens=2000
@@ -1058,7 +1059,7 @@ async def retry_chat(request: RetryChatRequest):
         # OpenAI API 호출
         client = openai.OpenAI(api_key=openai_api_key)
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
@@ -1650,9 +1651,9 @@ async def check_quests(request: QuestCheckRequest):
 """
         
         # OpenAI API 호출
-        openai.api_key = openai_api_key
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
+        client = openai.OpenAI(api_key=openai_api_key)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "당신은 환자의 의료 진료 상황 연습을 위한 퀘스트 평가 전문가입니다. 객관적이고 정확한 평가를 제공해주세요. 퀘스트 ID는 정확히 제공된 ID를 사용해야 합니다. 이것은 환자 입장에서 수행하는 것입니다."},
                 {"role": "user", "content": prompt}
@@ -1923,16 +1924,16 @@ async def generate_cheatsheet(request: CheatsheetRequest):
 """
         
         # OpenAI API 호출
-        openai.api_key = openai_api_key
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
+        client = openai.OpenAI(api_key=openai_api_key)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "당신은 환자를 위한 진료 시에 사용할 스크립트 생성 전문가입니다. 북한이탈주민의 특성을 고려하여 실용적이고 구체적인 스크립트를 제공해주세요."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
             max_tokens=1500
-        )
+            )
         
         # 응답 파싱
         try:
